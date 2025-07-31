@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Search Users - School Helpdesk{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-user-search me-2"></i>Search Users</h2>
+        <p class="text-muted">Search users across all databases with advanced filters</p>
+    </div>
+</div>
+
+<!-- Search Form -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Search Filters</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="query" class="form-label">Search Query</label>
+                                <input type="text" class="form-control" id="query" name="query" 
+                                       value="{{ query }}" placeholder="Search by username, email, or department...">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Role</label>
+                                <select class="form-select" id="role" name="role">
+                                    <option value="">All Roles</option>
+                                    <option value="admin" {{ 'selected' if role == 'admin' else '' }}>Admin</option>
+                                    <option value="user" {{ 'selected' if role == 'user' else '' }}>User</option>
+                                    <option value="it_agent" {{ 'selected' if role == 'it_agent' else '' }}>IT Agent</option>
+                                    <option value="fm_agent" {{ 'selected' if role == 'fm_agent' else '' }}>FM Agent</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="department" class="form-label">Department</label>
+                                <select class="form-select" id="department" name="department">
+                                    <option value="">All Departments</option>
+                                    <option value="IT" {{ 'selected' if department == 'IT' else '' }}>IT</option>
+                                    <option value="FM" {{ 'selected' if department == 'FM' else '' }}>FM</option>
+                                    <option value="HR" {{ 'selected' if department == 'HR' else '' }}>HR</option>
+                                    <option value="Finance" {{ 'selected' if department == 'Finance' else '' }}>Finance</option>
+                                    <option value="Administration" {{ 'selected' if department == 'Administration' else '' }}>Administration</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="is_active" class="form-label">Status</label>
+                                <select class="form-select" id="is_active" name="is_active">
+                                    <option value="">All Status</option>
+                                    <option value="true" {{ 'selected' if is_active == True else '' }}>Active</option>
+                                    <option value="false" {{ 'selected' if is_active == False else '' }}>Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label class="form-label">&nbsp;</label>
+                                <div>
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-search me-1"></i>Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <a href="{{ url_for('admin_search_users') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Results -->
+{% if users %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Search Results
+                    <span class="badge bg-primary ms-2">{{ users|length }} users found</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>#{{ user.id }}</td>
+                                <td>
+                                    <strong>{{ user.username }}</strong>
+                                </td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'primary' if user.role == 'user' else 'success' if user.role == 'it_agent' else 'info' }}">
+                                        {{ user.role|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if user.department %}
+                                        <span class="badge bg-secondary">{{ user.department }}</span>
+                                    {% else %}
+                                        <span class="text-muted">Not specified</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if user.is_active else 'danger' }}">
+                                        {{ 'Active' if user.is_active else 'Inactive' }}
+                                    </span>
+                                </td>
+                                <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '' }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('edit_user', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-warning" 
+                                                onclick="resetPassword({{ user.id }}, '{{ user.username }}')">
+                                            <i class="fas fa-key"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-{{ 'danger' if user.is_active else 'success' }}"
+                                                onclick="toggleUserStatus({{ user.id }}, '{{ user.username }}', {{ user.is_active|lower }})">
+                                            <i class="fas fa-{{ 'ban' if user.is_active else 'check' }}"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% elif query or role or department or is_active is not none %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-user-search fa-3x text-muted mb-3"></i>
+                <h5>No users found</h5>
+                <p class="text-muted">Try adjusting your search criteria</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Search Statistics -->
+{% if users %}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body text-center">
+                <h4>{{ users|length }}</h4>
+                <p class="mb-0">Total Results</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body text-center">
+                <h4>{{ users|selectattr('is_active', 'equalto', true)|list|length }}</h4>
+                <p class="mb-0">Active Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body text-center">
+                <h4>{{ users|selectattr('role', 'equalto', 'user')|list|length }}</h4>
+                <p class="mb-0">Regular Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body text-center">
+                <h4>{{ users|selectattr('role', 'in', ['it_agent', 'fm_agent'])|list|length }}</h4>
+                <p class="mb-0">Agents</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function resetPassword(userId, username) {
+    if (confirm(`Reset password for user "${username}"?`)) {
+        fetch(`/admin/reset_password/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Password reset successfully!');
+            } else {
+                alert('Failed to reset password: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while resetting password');
+        });
+    }
+}
+
+function toggleUserStatus(userId, username, currentStatus) {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    if (confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} user "${username}"?`)) {
+        fetch(`/admin/toggle_user_status/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to update user status: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating user status');
+        });
+    }
+}
+</script>
+{% endblock %} 

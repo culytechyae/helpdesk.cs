@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User - School Helpdesk{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Edit User: {{ user.username }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="username" name="username" 
+                                           value="{{ user.username }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           value="{{ user.email }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="role" class="form-label">Role</label>
+                                    <select class="form-select" id="role" name="role" required>
+                                        <option value="user" {% if user.role == 'user' %}selected{% endif %}>User</option>
+                                        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                        <option value="it_agent" {% if user.role == 'it_agent' %}selected{% endif %}>IT Agent</option>
+                                        <option value="fm_agent" {% if user.role == 'fm_agent' %}selected{% endif %}>FM Agent</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="department" class="form-label">Department</label>
+                                    <input type="text" class="form-control" id="department" name="department" 
+                                           value="{{ user.department or '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Update User
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr>
+                    
+                    <!-- Password Reset Section -->
+                    <div class="mt-4">
+                        <h5><i class="fas fa-key me-2"></i>Reset Password</h5>
+                        <p class="text-muted">Set a new password for this user.</p>
+                        
+                        <form method="POST" action="{{ url_for('reset_password', user_id=user.id) }}" class="row g-3">
+                            <div class="col-md-8">
+                                <input type="password" class="form-control" name="new_password" 
+                                       placeholder="Enter new password" required>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-warning w-100">
+                                    <i class="fas fa-key me-1"></i>Reset Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- User Status -->
+                    <div class="mt-4">
+                        <h5><i class="fas fa-info-circle me-2"></i>User Information</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Status:</strong> 
+                                    <span class="badge bg-{{ 'success' if user.is_active else 'danger' }}">
+                                        {{ 'Active' if user.is_active else 'Inactive' }}
+                                    </span>
+                                </p>
+                                <p><strong>Created:</strong> {{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Role:</strong> 
+                                    <span class="badge bg-{{ 'primary' if user.role == 'admin' else 'info' if user.role in ['it_agent', 'fm_agent'] else 'secondary' }}">
+                                        {{ user.role.replace('_', ' ').title() }}
+                                    </span>
+                                </p>
+                                <p><strong>Department:</strong> {{ user.department or 'Not specified' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Users
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

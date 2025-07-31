@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}My Dashboard - School Helpdesk{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-user me-2"></i>My Dashboard</h2>
+        <p class="text-muted">Welcome back, {{ current_user.username }}!</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ tickets|length }}</h4>
+                        <p class="card-text">My Tickets</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-ticket-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ tickets|selectattr('status', 'equalto', 'Open')|list|length }}</h4>
+                        <p class="card-text">Open Tickets</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ tickets|selectattr('status', 'equalto', 'Resolved')|list|length }}</h4>
+                        <p class="card-text">Resolved Tickets</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('create_ticket') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Create New Ticket
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Tickets -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-ticket-alt me-2"></i>My Tickets</h5>
+            </div>
+            <div class="card-body">
+                {% if tickets %}
+                    <div class="row">
+                        {% for ticket in tickets %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card ticket-card priority-{{ ticket.priority.lower() }} status-{{ ticket.status.lower().replace(' ', '-') }}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0">
+                                            <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="text-decoration-none">
+                                                {{ ticket.title }}
+                                            </a>
+                                        </h6>
+                                        <span class="badge bg-{{ 'primary' if ticket.category == 'IT' else 'success' }}">
+                                            {{ ticket.category }}
+                                        </span>
+                                    </div>
+                                    <p class="card-text text-muted small">{{ ticket.description[:100] }}{% if ticket.description|length > 100 %}...{% endif %}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-{{ 'danger' if ticket.priority == 'Critical' else 'warning' if ticket.priority == 'High' else 'info' if ticket.priority == 'Medium' else 'success' }}">
+                                            {{ ticket.priority }}
+                                        </span>
+                                        <span class="badge bg-{{ 'secondary' if ticket.status == 'Open' else 'warning' if ticket.status == 'Assigned' else 'info' if ticket.status == 'In Progress' else 'success' if ticket.status == 'Resolved' else 'dark' }}">
+                                            {{ ticket.status }}
+                                        </span>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        </small>
+                                    </div>
+                                    {% if ticket.assignee %}
+                                    <div class="mt-1">
+                                        <small class="text-muted">
+                                            <i class="fas fa-user me-1"></i>Assigned to {{ ticket.assignee.username }}
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">You haven't created any tickets yet.</p>
+                        <a href="{{ url_for('create_ticket') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Create Your First Ticket
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

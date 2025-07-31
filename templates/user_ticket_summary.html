@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.username }} - Ticket Summary{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-user me-2"></i>{{ user.username }} - Ticket Summary</h2>
+                <p class="text-muted">Detailed overview of tickets created by {{ user.username }}</p>
+            </div>
+            <div>
+                <a href="{{ url_for('admin_summary_reports') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Reports
+                </a>
+                <a href="{{ url_for('download_user_tickets', user_id=user.id) }}" class="btn btn-success">
+                    <i class="fas fa-download me-1"></i>Download Excel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Info -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>User Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Username:</strong> {{ user.username }}</p>
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                        <p><strong>Role:</strong> {{ user.role|title }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Department:</strong> {{ user.department or 'Not specified' }}</p>
+                        <p><strong>Account Status:</strong> 
+                            <span class="badge bg-{{ 'success' if user.is_active else 'danger' }}">
+                                {{ 'Active' if user.is_active else 'Inactive' }}
+                            </span>
+                        </p>
+                        <p><strong>Member Since:</strong> {{ user.created_at.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ user_tickets|length }}</h4>
+                        <p class="card-text">Total Tickets</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-ticket-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-secondary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ open_tickets|length }}</h4>
+                        <p class="card-text">Open Tickets</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ pending_tickets|length }}</h4>
+                        <p class="card-text">Pending Tickets</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ closed_tickets|length }}</h4>
+                        <p class="card-text">Closed Tickets</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Ticket Status Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Ticket Category Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ticket Lists -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>Open Tickets ({{ open_tickets|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if open_tickets %}
+                    <div class="list-group list-group-flush">
+                        {% for ticket in open_tickets %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="text-decoration-none">
+                                            #{{ ticket.id }} - {{ ticket.title }}
+                                        </a>
+                                    </h6>
+                                    <small class="text-muted">{{ ticket.description[:50] }}{% if ticket.description|length > 50 %}...{% endif %}</small>
+                                </div>
+                                <span class="badge bg-{{ 'primary' if ticket.category == 'IT' else 'success' }}">
+                                    {{ ticket.category }}
+                                </span>
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge bg-{{ 'danger' if ticket.priority == 'Critical' else 'warning' if ticket.priority == 'High' else 'info' if ticket.priority == 'Medium' else 'success' }}">
+                                    {{ ticket.priority }}
+                                </span>
+                                <small class="text-muted ms-2">{{ ticket.created_at.strftime('%Y-%m-%d') }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">No open tickets</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Pending Tickets ({{ pending_tickets|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if pending_tickets %}
+                    <div class="list-group list-group-flush">
+                        {% for ticket in pending_tickets %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="text-decoration-none">
+                                            #{{ ticket.id }} - {{ ticket.title }}
+                                        </a>
+                                    </h6>
+                                    <small class="text-muted">{{ ticket.description[:50] }}{% if ticket.description|length > 50 %}...{% endif %}</small>
+                                </div>
+                                <span class="badge bg-{{ 'primary' if ticket.category == 'IT' else 'success' }}">
+                                    {{ ticket.category }}
+                                </span>
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge bg-{{ 'danger' if ticket.priority == 'Critical' else 'warning' if ticket.priority == 'High' else 'info' if ticket.priority == 'Medium' else 'success' }}">
+                                    {{ ticket.priority }}
+                                </span>
+                                <small class="text-muted ms-2">{{ ticket.created_at.strftime('%Y-%m-%d') }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">No pending tickets</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Closed Tickets ({{ closed_tickets|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if closed_tickets %}
+                    <div class="list-group list-group-flush">
+                        {% for ticket in closed_tickets %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="text-decoration-none">
+                                            #{{ ticket.id }} - {{ ticket.title }}
+                                        </a>
+                                    </h6>
+                                    <small class="text-muted">{{ ticket.description[:50] }}{% if ticket.description|length > 50 %}...{% endif %}</small>
+                                </div>
+                                <span class="badge bg-{{ 'primary' if ticket.category == 'IT' else 'success' }}">
+                                    {{ ticket.category }}
+                                </span>
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge bg-{{ 'danger' if ticket.priority == 'Critical' else 'warning' if ticket.priority == 'High' else 'info' if ticket.priority == 'Medium' else 'success' }}">
+                                    {{ ticket.priority }}
+                                </span>
+                                <small class="text-muted ms-2">{{ ticket.created_at.strftime('%Y-%m-%d') }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">No closed tickets</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Status Chart
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+const statusChart = new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Open', 'Pending', 'Closed'],
+        datasets: [{
+            data: [
+                {{ open_tickets|length }},
+                {{ pending_tickets|length }},
+                {{ closed_tickets|length }}
+            ],
+            backgroundColor: [
+                '#6c757d',
+                '#ffc107',
+                '#28a745'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Category Chart
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+const categoryChart = new Chart(categoryCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['IT', 'FM'],
+        datasets: [{
+            data: [
+                {{ user_tickets|selectattr('category', 'equalto', 'IT')|list|length }},
+                {{ user_tickets|selectattr('category', 'equalto', 'FM')|list|length }}
+            ],
+            backgroundColor: [
+                '#007bff',
+                '#28a745'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %} 

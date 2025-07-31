@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}Summary Reports - School Helpdesk{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-chart-bar me-2"></i>Summary Reports</h2>
+        <p class="text-muted">Comprehensive overview of ticket statistics and performance metrics</p>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ all_tickets|length }}</h4>
+                        <p class="card-text">Total Tickets</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-ticket-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ it_tickets|length }}</h4>
+                        <p class="card-text">IT Tickets</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-laptop fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ fm_tickets|length }}</h4>
+                        <p class="card-text">FM Tickets</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-tools fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ open_tickets|length }}</h4>
+                        <p class="card-text">Open Tickets</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Ticket Status Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Ticket Priority Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="priorityChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Category-wise Tickets</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Monthly Ticket Trends</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="trendChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Tables -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-table me-2"></i>Status-wise Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-secondary">Open</span></td>
+                                <td>{{ open_tickets|length }}</td>
+                                <td>{{ "%.1f"|format((open_tickets|length / all_tickets|length * 100) if all_tickets|length > 0 else 0) }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-warning">Assigned</span></td>
+                                <td>{{ assigned_tickets|length }}</td>
+                                <td>{{ "%.1f"|format((assigned_tickets|length / all_tickets|length * 100) if all_tickets|length > 0 else 0) }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info">In Progress</span></td>
+                                <td>{{ in_progress_tickets|length }}</td>
+                                <td>{{ "%.1f"|format((in_progress_tickets|length / all_tickets|length * 100) if all_tickets|length > 0 else 0) }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">Resolved</span></td>
+                                <td>{{ resolved_tickets|length }}</td>
+                                <td>{{ "%.1f"|format((resolved_tickets|length / all_tickets|length * 100) if all_tickets|length > 0 else 0) }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-dark">Closed</span></td>
+                                <td>{{ closed_tickets|length }}</td>
+                                <td>{{ "%.1f"|format((closed_tickets|length / all_tickets|length * 100) if all_tickets|length > 0 else 0) }}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-table me-2"></i>Priority-wise Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Priority</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-danger">Critical</span></td>
+                                <td>{{ critical_tickets|length }}</td>
+                                <td>{{ "%.1f"|format((critical_tickets|length / all_tickets|length * 100) if all_tickets|length > 0 else 0) }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-warning">High</span></td>
+                                <td>{{ high_tickets|length }}</td>
+                                <td>{{ "%.1f"|format((high_tickets|length / all_tickets|length * 100) if all_tickets|length > 0 else 0) }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info">Medium</span></td>
+                                <td>{{ medium_tickets|length }}</td>
+                                <td>{{ "%.1f"|format((medium_tickets|length / all_tickets|length * 100) if all_tickets|length > 0 else 0) }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">Low</span></td>
+                                <td>{{ low_tickets|length }}</td>
+                                <td>{{ "%.1f"|format((low_tickets|length / all_tickets|length * 100) if all_tickets|length > 0 else 0) }}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User-wise Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-users me-2"></i>User-wise Ticket Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Total Tickets</th>
+                                <th>Open</th>
+                                <th>Pending</th>
+                                <th>Closed</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for username, stats in user_tickets.items() %}
+                            <tr>
+                                <td>{{ username }}</td>
+                                <td>{{ stats.total }}</td>
+                                <td><span class="badge bg-secondary">{{ stats.open }}</span></td>
+                                <td><span class="badge bg-warning">{{ stats.pending }}</span></td>
+                                <td><span class="badge bg-success">{{ stats.closed }}</span></td>
+                                <td>
+                                    {% for user in users %}
+                                        {% if user.username == username %}
+                                            <a href="{{ url_for('user_ticket_summary', user_id=user.id) }}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </a>
+                                            <a href="{{ url_for('download_user_tickets', user_id=user.id) }}" class="btn btn-sm btn-success">
+                                                <i class="fas fa-download me-1"></i>Download
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Agent-wise Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user-cog me-2"></i>Agent-wise Ticket Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Agent</th>
+                                <th>Total Assigned</th>
+                                <th>Open</th>
+                                <th>Assigned</th>
+                                <th>In Progress</th>
+                                <th>Resolved</th>
+                                <th>Closed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for username, stats in agent_tickets.items() %}
+                            <tr>
+                                <td>{{ username }}</td>
+                                <td>{{ stats.total }}</td>
+                                <td><span class="badge bg-secondary">{{ stats.open }}</span></td>
+                                <td><span class="badge bg-warning">{{ stats.assigned }}</span></td>
+                                <td><span class="badge bg-info">{{ stats.in_progress }}</span></td>
+                                <td><span class="badge bg-success">{{ stats.resolved }}</span></td>
+                                <td><span class="badge bg-dark">{{ stats.closed }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Status Chart
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+const statusChart = new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Open', 'Assigned', 'In Progress', 'Resolved', 'Closed'],
+        datasets: [{
+            data: [
+                {{ open_tickets|length }},
+                {{ assigned_tickets|length }},
+                {{ in_progress_tickets|length }},
+                {{ resolved_tickets|length }},
+                {{ closed_tickets|length }}
+            ],
+            backgroundColor: [
+                '#6c757d',
+                '#ffc107',
+                '#17a2b8',
+                '#28a745',
+                '#343a40'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Priority Chart
+const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+const priorityChart = new Chart(priorityCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Critical', 'High', 'Medium', 'Low'],
+        datasets: [{
+            data: [
+                {{ critical_tickets|length }},
+                {{ high_tickets|length }},
+                {{ medium_tickets|length }},
+                {{ low_tickets|length }}
+            ],
+            backgroundColor: [
+                '#dc3545',
+                '#ffc107',
+                '#17a2b8',
+                '#28a745'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Category Chart
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+const categoryChart = new Chart(categoryCtx, {
+    type: 'bar',
+    data: {
+        labels: ['IT', 'FM'],
+        datasets: [{
+            label: 'Number of Tickets',
+            data: [
+                {{ it_tickets|length }},
+                {{ fm_tickets|length }}
+            ],
+            backgroundColor: [
+                '#007bff',
+                '#28a745'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Trend Chart (Monthly)
+const trendCtx = document.getElementById('trendChart').getContext('2d');
+const trendChart = new Chart(trendCtx, {
+    type: 'line',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+            label: 'Tickets Created',
+            data: [12, 19, 3, 5, 2, 3, 7, 8, 9, 10, 11, 12], // Sample data - you can make this dynamic
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %} 

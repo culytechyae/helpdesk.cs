@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block title %}Email Settings - School Helpdesk{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-envelope me-2"></i>Email Configuration & Troubleshooting
+                    </h4>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Email Provider Selection -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-cog me-2"></i>Quick Setup</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="email_provider" class="form-label">Email Provider</label>
+                                <select class="form-select" id="email_provider" onchange="loadProviderConfig()">
+                                    <option value="">Select Provider</option>
+                                    <option value="gmail">Gmail</option>
+                                    <option value="outlook">Outlook/Hotmail</option>
+                                    <option value="yahoo">Yahoo</option>
+                                    <option value="office365">Office 365</option>
+                                    <option value="custom">Custom SMTP</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" class="btn btn-info w-100" onclick="showProviderGuide()">
+                                    <i class="fas fa-question-circle me-1"></i>Setup Guide
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Settings Form -->
+                    <form method="POST" action="{{ url_for('admin_settings') }}" id="emailForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="smtp_server" class="form-label">SMTP Server</label>
+                                    <input type="text" class="form-control" id="smtp_server" name="smtp_server" 
+                                           value="{{ email_settings.smtp_server if email_settings else '' }}" 
+                                           placeholder="e.g., smtp.gmail.com" required>
+                                    <div class="form-text">SMTP server address</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="smtp_port" class="form-label">SMTP Port</label>
+                                    <input type="number" class="form-control" id="smtp_port" name="smtp_port" 
+                                           value="{{ email_settings.smtp_port if email_settings else '587' }}" 
+                                           placeholder="587" required>
+                                    <div class="form-text">Usually 587 for TLS, 465 for SSL</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email_address" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email_address" name="email_address" 
+                                           value="{{ email_settings.email_address if email_settings else '' }}" 
+                                           placeholder="helpdesk@school.com" required>
+                                    <div class="form-text">Email that will send notifications</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email_password" class="form-label">Password/App Password</label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="email_password" name="email_password" 
+                                               value="{{ email_settings.email_password if email_settings else '' }}" 
+                                               placeholder="Password or App Password" required>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                            <i class="fas fa-eye" id="passwordIcon"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">Use App Password for Gmail/Yahoo with 2FA</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-save me-1"></i>Save Settings
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-success w-100" onclick="testConnection()">
+                                    <i class="fas fa-plug me-1"></i>Test Connection
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Test Email Section -->
+                    <div class="mt-4">
+                        <h5><i class="fas fa-paper-plane me-2"></i>Test Email</h5>
+                        <p class="text-muted">Send a test email to verify your settings are working correctly.</p>
+                        
+                        <form method="POST" action="{{ url_for('test_email') }}" class="row g-3">
+                            <div class="col-md-8">
+                                <input type="email" class="form-control" name="test_email" 
+                                       placeholder="Enter email address to send test to" required>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-paper-plane me-1"></i>Send Test Email
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Troubleshooting Section -->
+                    <div class="mt-4">
+                        <h5><i class="fas fa-tools me-2"></i>Troubleshooting</h5>
+                        
+                        <div class="accordion" id="troubleshootingAccordion">
+                            <!-- Gmail Guide -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gmailGuide">
+                                        <i class="fas fa-google me-2"></i>Gmail Setup Guide
+                                    </button>
+                                </h2>
+                                <div id="gmailGuide" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                    <div class="accordion-body">
+                                        <h6>Gmail Configuration Steps:</h6>
+                                        <ol>
+                                            <li>Enable 2-Factor Authentication on your Google account</li>
+                                            <li>Generate an App Password:
+                                                <ul>
+                                                    <li>Go to Google Account settings</li>
+                                                    <li>Security > 2-Step Verification > App passwords</li>
+                                                    <li>Generate password for "Mail"</li>
+                                                </ul>
+                                            </li>
+                                            <li>Use the App Password instead of your regular password</li>
+                                            <li>SMTP Server: smtp.gmail.com</li>
+                                            <li>Port: 587</li>
+                                            <li>Security: TLS</li>
+                                        </ol>
+                                        <div class="alert alert-warning">
+                                            <strong>Common Issues:</strong>
+                                            <ul class="mb-0">
+                                                <li>Authentication failed: Use App Password, not regular password</li>
+                                                <li>Connection failed: Check internet connection and firewall</li>
+                                                <li>Port blocked: Try port 587 or 465</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Outlook Guide -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#outlookGuide">
+                                        <i class="fas fa-microsoft me-2"></i>Outlook/Hotmail Setup Guide
+                                    </button>
+                                </h2>
+                                <div id="outlookGuide" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                    <div class="accordion-body">
+                                        <h6>Outlook Configuration Steps:</h6>
+                                        <ol>
+                                            <li>Use your full email address</li>
+                                            <li>Use your regular password</li>
+                                            <li>SMTP Server: smtp-mail.outlook.com</li>
+                                            <li>Port: 587</li>
+                                            <li>Security: TLS</li>
+                                        </ol>
+                                        <div class="alert alert-warning">
+                                            <strong>Common Issues:</strong>
+                                            <ul class="mb-0">
+                                                <li>Authentication failed: Check email and password</li>
+                                                <li>Connection failed: Check internet connection</li>
+                                                <li>Security settings: Enable "Less secure apps" if needed</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Yahoo Guide -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#yahooGuide">
+                                        <i class="fas fa-yahoo me-2"></i>Yahoo Setup Guide
+                                    </button>
+                                </h2>
+                                <div id="yahooGuide" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                    <div class="accordion-body">
+                                        <h6>Yahoo Configuration Steps:</h6>
+                                        <ol>
+                                            <li>Generate an App Password:
+                                                <ul>
+                                                    <li>Go to Yahoo Account Security</li>
+                                                    <li>App passwords > Generate app password</li>
+                                                </ul>
+                                            </li>
+                                            <li>Use the App Password instead of your regular password</li>
+                                            <li>SMTP Server: smtp.mail.yahoo.com</li>
+                                            <li>Port: 587</li>
+                                            <li>Security: TLS</li>
+                                        </ol>
+                                        <div class="alert alert-warning">
+                                            <strong>Common Issues:</strong>
+                                            <ul class="mb-0">
+                                                <li>Authentication failed: Use App Password, not regular password</li>
+                                                <li>Connection failed: Check internet connection</li>
+                                                <li>Account security: Enable app passwords in Yahoo settings</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- General Troubleshooting -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#generalGuide">
+                                        <i class="fas fa-question-circle me-2"></i>General Troubleshooting
+                                    </button>
+                                </h2>
+                                <div id="generalGuide" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                    <div class="accordion-body">
+                                        <h6>Common Solutions:</h6>
+                                        <ul>
+                                            <li><strong>Authentication Error:</strong> Check email/password, use App Password for 2FA accounts</li>
+                                            <li><strong>Connection Error:</strong> Verify SMTP server and port, check internet connection</li>
+                                            <li><strong>Port Blocked:</strong> Try different ports (587, 465, 25)</li>
+                                            <li><strong>Firewall Issues:</strong> Allow the application through your firewall</li>
+                                            <li><strong>SSL/TLS Issues:</strong> Ensure TLS is enabled and port is correct</li>
+                                        </ul>
+                                        <div class="alert alert-info">
+                                            <strong>Testing Steps:</strong>
+                                            <ol class="mb-0">
+                                                <li>Test connection to SMTP server</li>
+                                                <li>Test authentication with credentials</li>
+                                                <li>Send test email to verify full functionality</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Information -->
+                    <div class="mt-4">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>Email Configuration Status</h6>
+                            {% if email_settings %}
+                                <p class="mb-1"><strong>✅ Settings Configured:</strong></p>
+                                <ul class="mb-0">
+                                    <li>SMTP Server: {{ email_settings.smtp_server }}</li>
+                                    <li>Port: {{ email_settings.smtp_port }}</li>
+                                    <li>Email: {{ email_settings.email_address }}</li>
+                                    <li>Last Updated: {{ email_settings.updated_at.strftime('%Y-%m-%d %H:%M') }}</li>
+                                </ul>
+                            {% else %}
+                                <p class="mb-0"><strong>❌ No email settings configured.</strong> Please configure email settings to enable notifications.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function loadProviderConfig() {
+    const provider = document.getElementById('email_provider').value;
+    const configs = {
+        'gmail': { server: 'smtp.gmail.com', port: 587 },
+        'outlook': { server: 'smtp-mail.outlook.com', port: 587 },
+        'yahoo': { server: 'smtp.mail.yahoo.com', port: 587 },
+        'office365': { server: 'smtp.office365.com', port: 587 },
+        'custom': { server: '', port: 587 }
+    };
+    
+    if (configs[provider]) {
+        document.getElementById('smtp_server').value = configs[provider].server;
+        document.getElementById('smtp_port').value = configs[provider].port;
+    }
+}
+
+function togglePassword() {
+    const passwordField = document.getElementById('email_password');
+    const icon = document.getElementById('passwordIcon');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        passwordField.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+
+function testConnection() {
+    const server = document.getElementById('smtp_server').value;
+    const port = document.getElementById('smtp_port').value;
+    const email = document.getElementById('email_address').value;
+    const password = document.getElementById('email_password').value;
+    
+    if (!server || !port || !email || !password) {
+        alert('Please fill in all fields before testing connection.');
+        return;
+    }
+    
+    // This would typically make an AJAX call to test the connection
+    alert('Connection testing feature would be implemented here.\n\nPlease use the "Send Test Email" feature to verify your settings.');
+}
+
+function showProviderGuide() {
+    const provider = document.getElementById('email_provider').value;
+    if (!provider) {
+        alert('Please select an email provider first.');
+        return;
+    }
+    
+    // Show the appropriate accordion section
+    const accordionId = provider + 'Guide';
+    const accordionElement = document.getElementById(accordionId);
+    if (accordionElement) {
+        const bsCollapse = new bootstrap.Collapse(accordionElement, { show: true });
+    }
+}
+</script>
+{% endblock %} 

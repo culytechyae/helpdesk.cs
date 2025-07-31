@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket #{{ ticket.id }} - School Helpdesk{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <!-- Ticket Details -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-ticket-alt me-2"></i>Ticket #{{ ticket.id }}
+                </h4>
+                <div>
+                    <span class="badge bg-{{ 'primary' if ticket.category == 'IT' else 'success' }} me-2">
+                        {{ ticket.category }}
+                    </span>
+                    <span class="badge bg-{{ 'danger' if ticket.priority == 'Critical' else 'warning' if ticket.priority == 'High' else 'info' if ticket.priority == 'Medium' else 'success' }}">
+                        {{ ticket.priority }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ ticket.title }}</h5>
+                <p class="card-text">{{ ticket.description }}</p>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <strong>Created by:</strong> {{ ticket.creator.username }}<br>
+                            <strong>Created:</strong> {{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}<br>
+                            <strong>Last updated:</strong> {{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <strong>Status:</strong> 
+                            <span class="badge bg-{{ 'secondary' if ticket.status == 'Open' else 'warning' if ticket.status == 'Assigned' else 'info' if ticket.status == 'In Progress' else 'success' if ticket.status == 'Resolved' else 'dark' }}">
+                                {{ ticket.status }}
+                            </span><br>
+                            {% if ticket.assignee %}
+                                <strong>Assigned to:</strong> {{ ticket.assignee.username }}
+                            {% else %}
+                                <strong>Assigned to:</strong> <span class="text-muted">Unassigned</span>
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Comments</h5>
+            </div>
+            <div class="card-body">
+                {% if ticket.comments %}
+                    {% for comment in ticket.comments %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ comment.user.username }}</strong>
+                                <small class="text-muted ms-2">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                            {% if comment.user.role %}
+                                <span class="badge bg-secondary">{{ comment.user.role|title }}</span>
+                            {% endif %}
+                        </div>
+                        <p class="mt-2 mb-0">{{ comment.content }}</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">No comments yet.</p>
+                {% endif %}
+
+                <!-- Add Comment Form -->
+                <form method="POST" action="{{ url_for('add_comment', ticket_id=ticket.id) }}" class="mt-4">
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Add Comment</label>
+                        <textarea class="form-control" id="content" name="content" rows="3" 
+                                  placeholder="Add your comment here..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-comment me-1"></i>Add Comment
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Status Update (for agents and admin) -->
+        {% if current_user.role in ['admin', 'it_agent', 'fm_agent'] and ticket.assigned_to == current_user.id %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Update Status</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_ticket_status', ticket_id=ticket.id) }}">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="Open" {% if ticket.status == 'Open' %}selected{% endif %}>Open</option>
+                            <option value="In Progress" {% if ticket.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                            <option value="Resolved" {% if ticket.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="Closed" {% if ticket.status == 'Closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save me-1"></i>Update Status
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Assign Ticket (for admin) -->
+        {% if current_user.role == 'admin' %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>Assign Ticket</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('assign_ticket', ticket_id=ticket.id) }}">
+                    <div class="mb-3">
+                        <label for="agent_id" class="form-label">Assign to Agent</label>
+                        <select class="form-select" id="agent_id" name="agent_id">
+                            <option value="">Select Agent</option>
+                            {% if ticket.category == 'IT' %}
+                                <optgroup label="IT Agents">
+                                {% for agent in it_agents %}
+                                <option value="{{ agent.id }}" {% if ticket.assigned_to == agent.id %}selected{% endif %}>
+                                    {{ agent.username }} - {{ agent.department or 'IT' }}
+                                </option>
+                                {% endfor %}
+                                </optgroup>
+                            {% elif ticket.category == 'FM' %}
+                                <optgroup label="FM Agents">
+                                {% for agent in fm_agents %}
+                                <option value="{{ agent.id }}" {% if ticket.assigned_to == agent.id %}selected{% endif %}>
+                                    {{ agent.username }} - {{ agent.department or 'Facilities Management' }}
+                                </option>
+                                {% endfor %}
+                                </optgroup>
+                            {% endif %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-user-check me-1"></i>Assign Ticket
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Ticket Info -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Ticket Information</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <strong>Category:</strong><br>
+                        <span class="badge bg-{{ 'primary' if ticket.category == 'IT' else 'success' }}">
+                            {{ ticket.category }}
+                        </span>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Priority:</strong><br>
+                        <span class="badge bg-{{ 'danger' if ticket.priority == 'Critical' else 'warning' if ticket.priority == 'High' else 'info' if ticket.priority == 'Medium' else 'success' }}">
+                            {{ ticket.priority }}
+                        </span>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Status:</strong><br>
+                        <span class="badge bg-{{ 'secondary' if ticket.status == 'Open' else 'warning' if ticket.status == 'Assigned' else 'info' if ticket.status == 'In Progress' else 'success' if ticket.status == 'Resolved' else 'dark' }}">
+                            {{ ticket.status }}
+                        </span>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Created:</strong><br>
+                        <small class="text-muted">{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                    </li>
+                    {% if ticket.assignee %}
+                    <li class="mb-2">
+                        <strong>Assigned to:</strong><br>
+                        <small class="text-muted">{{ ticket.assignee.username }}</small>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Database Management - School Helpdesk{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-database me-2"></i>Database Management</h2>
+        <p class="text-muted">Manage multiple database instances and monitor their usage</p>
+    </div>
+</div>
+
+<!-- Database Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Database Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Total Databases:</strong> {{ databases|length }}</p>
+                        <p><strong>Max Size per Database:</strong> 1 GB (1024 MB)</p>
+                        <p><strong>Auto-switching:</strong> Enabled</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Current Active Database:</strong> 
+                            {% for db in databases %}
+                                {% if db.is_active %}
+                                    <span class="badge bg-success">{{ db.name }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </p>
+                        <p><strong>Total Data Size:</strong> 
+                            {% set total_size = databases|sum(attribute='size_mb') %}
+                            <span class="badge bg-info">{{ "%.2f"|format(total_size) }} MB</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Database List -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Database Instances</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Database Name</th>
+                                <th>Size</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for db in databases %}
+                            <tr>
+                                <td>
+                                    <strong>{{ db.name }}</strong>
+                                    {% if db.is_active %}
+                                        <span class="badge bg-success ms-2">Active</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress me-2" style="width: 100px; height: 8px;">
+                                            {% set percentage = (db.size_mb / 1024) * 100 %}
+                                            <div class="progress-bar bg-{{ 'danger' if percentage > 80 else 'warning' if percentage > 60 else 'success' }}" 
+                                                 style="width: {{ percentage }}%"></div>
+                                        </div>
+                                        <span class="text-muted">{{ "%.2f"|format(db.size_mb) }} MB</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if db.size_mb > 819 %}
+                                        <span class="badge bg-danger">Full</span>
+                                    {% elif db.size_mb > 614 %}
+                                        <span class="badge bg-warning">Warning</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Normal</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not db.is_active %}
+                                        <form method="POST" action="{{ url_for('switch_database', db_index=db.index) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-toggle-on me-1"></i>Switch To
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <span class="text-muted">Current Database</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Database Statistics -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Database Usage</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dbUsageChart" width="300" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Database Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h4 class="text-success">{{ databases|selectattr('is_active', 'equalto', true)|list|length }}</h4>
+                            <p class="text-muted">Active Database</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h4 class="text-warning">{{ databases|selectattr('size_mb', 'gt', 614)|list|length }}</h4>
+                            <p class="text-muted">Warning Level</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h4 class="text-danger">{{ databases|selectattr('size_mb', 'gt', 819)|list|length }}</h4>
+                            <p class="text-muted">Full Databases</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h4 class="text-info">{{ "%.2f"|format(databases|sum(attribute='size_mb')) }}</h4>
+                            <p class="text-muted">Total Size (MB)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Database Usage Chart
+const dbUsageCtx = document.getElementById('dbUsageChart').getContext('2d');
+const dbUsageChart = new Chart(dbUsageCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [
+            {% for db in databases %}
+                '{{ db.name }}',
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for db in databases %}
+                    {{ db.size_mb }},
+                {% endfor %}
+            ],
+            backgroundColor: [
+                '#007bff',
+                '#28a745',
+                '#ffc107',
+                '#dc3545',
+                '#6c757d'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' + context.parsed + ' MB';
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %} 

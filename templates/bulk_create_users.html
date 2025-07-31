@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Create Users - School Helpdesk{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-users me-2"></i>Bulk Create Users
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="csv_file" class="form-label">Select CSV File</label>
+                            <input type="file" class="form-control" id="csv_file" name="csv_file" 
+                                   accept=".csv" required>
+                            <div class="form-text">Upload a CSV file with user information</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload me-1"></i>Upload and Create Users
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr>
+                    
+                    <!-- CSV Format Instructions -->
+                    <div class="mt-4">
+                        <h5><i class="fas fa-info-circle me-2"></i>CSV Format Requirements</h5>
+                        <p class="text-muted">Your CSV file should have the following columns:</p>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Column</th>
+                                        <th>Required</th>
+                                        <th>Description</th>
+                                        <th>Example</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>username</strong></td>
+                                        <td><span class="badge bg-danger">Yes</span></td>
+                                        <td>Unique username for the user</td>
+                                        <td>john.doe</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>email</strong></td>
+                                        <td><span class="badge bg-danger">Yes</span></td>
+                                        <td>Valid email address</td>
+                                        <td>john.doe@school.com</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>password</strong></td>
+                                        <td><span class="badge bg-danger">Yes</span></td>
+                                        <td>User's password</td>
+                                        <td>password123</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>role</strong></td>
+                                        <td><span class="badge bg-danger">Yes</span></td>
+                                        <td>user, admin, it_agent, fm_agent</td>
+                                        <td>user</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>department</strong></td>
+                                        <td><span class="badge bg-warning">Optional</span></td>
+                                        <td>User's department</td>
+                                        <td>IT</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Sample CSV -->
+                    <div class="mt-4">
+                        <h5><i class="fas fa-download me-2"></i>Sample CSV Format</h5>
+                        <p class="text-muted">Here's an example of how your CSV should look:</p>
+                        
+                        <div class="bg-light p-3 rounded">
+                            <code>
+                                username,email,password,role,department<br>
+                                john.doe,john.doe@school.com,password123,user,Teaching<br>
+                                jane.smith,jane.smith@school.com,password123,it_agent,IT<br>
+                                mike.jones,mike.jones@school.com,password123,fm_agent,Facilities<br>
+                                admin.user,admin@school.com,admin123,admin,Administration
+                            </code>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary btn-sm" onclick="downloadSampleCSV()">
+                                <i class="fas fa-download me-1"></i>Download Sample CSV
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Important Notes -->
+                    <div class="mt-4">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Important Notes:</h6>
+                            <ul class="mb-0">
+                                <li>Usernames and emails must be unique</li>
+                                <li>Passwords will be automatically hashed for security</li>
+                                <li>Valid roles: user, admin, it_agent, fm_agent</li>
+                                <li>Users will be created as active by default</li>
+                                <li>If a username or email already exists, that row will be skipped</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Users
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function downloadSampleCSV() {
+    const csvContent = "username,email,password,role,department\njohn.doe,john.doe@school.com,password123,user,Teaching\njane.smith,jane.smith@school.com,password123,it_agent,IT\nmike.jones,mike.jones@school.com,password123,fm_agent,Facilities\nadmin.user,admin@school.com,admin123,admin,Administration";
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample_users.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %} 

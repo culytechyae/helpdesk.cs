@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Email Templates Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-envelope me-2"></i>Email Templates Management</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="list-group" id="templateList">
+                                <a href="#" class="list-group-item list-group-item-action active" data-template="ticket_created">
+                                    <i class="fas fa-plus-circle me-2"></i>Ticket Created
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action" data-template="ticket_assigned_to_agent">
+                                    <i class="fas fa-user-check me-2"></i>Ticket Assigned to Agent
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action" data-template="comment_added">
+                                    <i class="fas fa-comment me-2"></i>Comment Added
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action" data-template="status_updated">
+                                    <i class="fas fa-sync me-2"></i>Status Updated
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <form method="POST" id="templateForm">
+                                <input type="hidden" name="template_type" id="templateType">
+                                
+                                <div class="mb-3">
+                                    <label for="subject" class="form-label">Email Subject</label>
+                                    <input type="text" class="form-control" id="subject" name="subject" required>
+                                    <div class="form-text">Use placeholders like {ticket_id}, {ticket_title}, etc.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="body" class="form-label">Email Body (HTML)</label>
+                                    <textarea class="form-control" id="body" name="body" rows="15" required></textarea>
+                                    <div class="form-text">HTML format supported. Use placeholders for dynamic content.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h5>Available Placeholders:</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>For Ticket Created:</h6>
+                                            <ul class="list-unstyled">
+                                                <li><code>{ticket_id}</code> - Ticket ID</li>
+                                                <li><code>{ticket_title}</code> - Ticket title</li>
+                                                <li><code>{ticket_category}</code> - IT or FM</li>
+                                                <li><code>{ticket_priority}</code> - Priority level</li>
+                                                <li><code>{ticket_status}</code> - Current status</li>
+                                                <li><code>{assigned_agent}</code> - Assigned agent name</li>
+                                                <li><code>{created_date}</code> - Creation date</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>For Comment Added:</h6>
+                                            <ul class="list-unstyled">
+                                                <li><code>{commenter_name}</code> - Comment author</li>
+                                                <li><code>{comment_content}</code> - Comment text</li>
+                                                <li><code>{comment_date}</code> - Comment date</li>
+                                            </ul>
+                                            <h6>For Status Updated:</h6>
+                                            <ul class="list-unstyled">
+                                                <li><code>{old_status}</code> - Previous status</li>
+                                                <li><code>{new_status}</code> - New status</li>
+                                                <li><code>{updated_by}</code> - Updated by user</li>
+                                                <li><code>{updated_by_role}</code> - User role</li>
+                                                <li><code>{updated_date}</code> - Update date</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Save Template
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateList = document.getElementById('templateList');
+    const templateForm = document.getElementById('templateForm');
+    const templateType = document.getElementById('templateType');
+    const subject = document.getElementById('subject');
+    const body = document.getElementById('body');
+    
+    // Load first template by default
+    loadTemplate('ticket_created');
+    
+    templateList.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (e.target.classList.contains('list-group-item')) {
+            // Remove active class from all items
+            templateList.querySelectorAll('.list-group-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to clicked item
+            e.target.classList.add('active');
+            
+            // Load template
+            const templateType = e.target.dataset.template;
+            loadTemplate(templateType);
+        }
+    });
+    
+    function loadTemplate(templateType) {
+        fetch(`/admin/email_templates/${templateType}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    // Template doesn't exist, load default
+                    loadDefaultTemplate(templateType);
+                } else {
+                    templateType.value = templateType;
+                    subject.value = data.subject;
+                    body.value = data.body;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading template:', error);
+                loadDefaultTemplate(templateType);
+            });
+    }
+    
+    function loadDefaultTemplate(templateType) {
+        templateType.value = templateType;
+        
+        const defaults = {
+            'ticket_created': {
+                subject: 'Ticket Created: #{ticket_id} - {ticket_title}',
+                body: `<html>
+<body>
+    <h2>Ticket Created Successfully</h2>
+    <p><strong>Ticket ID:</strong> #{ticket_id}</p>
+    <p><strong>Title:</strong> {ticket_title}</p>
+    <p><strong>Category:</strong> {ticket_category}</p>
+    <p><strong>Priority:</strong> {ticket_priority}</p>
+    <p><strong>Status:</strong> {ticket_status}</p>
+    <p><strong>Assigned to:</strong> {assigned_agent}</p>
+    <p><strong>Created:</strong> {created_date}</p>
+    <br>
+    <p>Your ticket has been created and assigned. You will receive updates on the progress.</p>
+</body>
+</html>`
+            },
+            'ticket_assigned_to_agent': {
+                subject: 'New Ticket Assigned: #{ticket_id} - {ticket_title}',
+                body: `<html>
+<body>
+    <h2>New Ticket Assigned</h2>
+    <p><strong>Ticket ID:</strong> #{ticket_id}</p>
+    <p><strong>Title:</strong> {ticket_title}</p>
+    <p><strong>Category:</strong> {ticket_category}</p>
+    <p><strong>Priority:</strong> {ticket_priority}</p>
+    <p><strong>Description:</strong> {ticket_description}</p>
+    <p><strong>Created by:</strong> {creator_name}</p>
+    <p><strong>Created:</strong> {created_date}</p>
+    <br>
+    <p>Please log in to the helpdesk system to view and update this ticket.</p>
+</body>
+</html>`
+            },
+            'comment_added': {
+                subject: 'New Comment on Ticket: #{ticket_id} - {ticket_title}',
+                body: `<html>
+<body>
+    <h2>New Comment Added</h2>
+    <p><strong>Ticket ID:</strong> #{ticket_id}</p>
+    <p><strong>Title:</strong> {ticket_title}</p>
+    <p><strong>Comment by:</strong> {commenter_name}</p>
+    <p><strong>Comment:</strong> {comment_content}</p>
+    <p><strong>Date:</strong> {comment_date}</p>
+    <br>
+    <p>Please log in to the helpdesk system to view the full conversation.</p>
+</body>
+</html>`
+            },
+            'status_updated': {
+                subject: 'Ticket Status Updated: #{ticket_id} - {ticket_title}',
+                body: `<html>
+<body>
+    <h2>Ticket Status Updated</h2>
+    <p><strong>Ticket ID:</strong> #{ticket_id}</p>
+    <p><strong>Title:</strong> {ticket_title}</p>
+    <p><strong>Category:</strong> {ticket_category}</p>
+    <p><strong>Priority:</strong> {ticket_priority}</p>
+    <p><strong>Previous Status:</strong> {old_status}</p>
+    <p><strong>New Status:</strong> {new_status}</p>
+    <p><strong>Updated by:</strong> {updated_by} ({updated_by_role})</p>
+    <p><strong>Updated:</strong> {updated_date}</p>
+    <br>
+    <p>Your ticket status has been updated. Please log in to the helpdesk system for more details.</p>
+</body>
+</html>`
+            }
+        };
+        
+        if (defaults[templateType]) {
+            subject.value = defaults[templateType].subject;
+            body.value = defaults[templateType].body;
+        }
+    }
+});
+</script>
+{% endblock %} 

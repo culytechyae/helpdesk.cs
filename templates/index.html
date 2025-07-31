@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - School Helpdesk{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="display-4 text-primary mb-4">
+                    <i class="fas fa-headset me-3"></i>School Helpdesk
+                </h1>
+                <p class="lead mb-4">
+                    Welcome to the School Helpdesk System. Get support for IT and Facilities Management issues.
+                </p>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-laptop fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">IT Support</h5>
+                                <p class="card-text">Get help with computer issues, software problems, and technical support.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-tools fa-3x text-success mb-3"></i>
+                                <h5 class="card-title">Facilities Management</h5>
+                                <p class="card-text">Report maintenance issues, building problems, and facility requests.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login to Get Started
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

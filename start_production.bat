@@ -1,0 +1,9 @@
+@echo off
+echo Starting Helpdesk Application in Production Mode...
+echo.
+echo Installing/Updating dependencies...
+pip install -r requirements.txt
+echo.
+echo Starting Gunicorn server...
+python -m gunicorn -c gunicorn.conf.py wsgi:app
+pause 

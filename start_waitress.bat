@@ -1,0 +1,9 @@
+@echo off
+echo Starting Helpdesk Application in Production Mode (Waitress)...
+echo.
+echo Installing/Updating dependencies...
+pip install -r requirements_windows.txt
+echo.
+echo Starting Waitress server...
+python -m waitress --host=0.0.0.0 --port=5000 wsgi:app
+pause 

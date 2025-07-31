@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Email Settings - School Helpdesk{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>Email Settings
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin_settings') }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="smtp_server" class="form-label">SMTP Server</label>
+                                    <input type="text" class="form-control" id="smtp_server" name="smtp_server" 
+                                           value="{{ email_settings.smtp_server if email_settings else '' }}" 
+                                           placeholder="e.g., smtp.gmail.com" required>
+                                    <div class="form-text">SMTP server address (e.g., smtp.gmail.com, smtp.outlook.com)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="smtp_port" class="form-label">SMTP Port</label>
+                                    <input type="number" class="form-control" id="smtp_port" name="smtp_port" 
+                                           value="{{ email_settings.smtp_port if email_settings else '587' }}" 
+                                           placeholder="587" required>
+                                    <div class="form-text">SMTP port (usually 587 for TLS, 465 for SSL)</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email_address" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email_address" name="email_address" 
+                                           value="{{ email_settings.email_address if email_settings else '' }}" 
+                                           placeholder="helpdesk@school.com" required>
+                                    <div class="form-text">Email address that will send notifications</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email_password" class="form-label">Email Password</label>
+                                    <input type="password" class="form-control" id="email_password" name="email_password" 
+                                           value="{{ email_settings.email_password if email_settings else '' }}" 
+                                           placeholder="Enter email password" required>
+                                    <div class="form-text">Password for the email account</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Save Email Settings
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr>
+                    
+                    <!-- Test Email Section -->
+                    <div class="mt-4">
+                        <h5><i class="fas fa-envelope me-2"></i>Test Email Configuration</h5>
+                        <p class="text-muted">Send a test email to verify your settings are working correctly.</p>
+                        
+                        <form method="POST" action="{{ url_for('test_email') }}" class="row g-3">
+                            <div class="col-md-8">
+                                <input type="email" class="form-control" name="test_email" 
+                                       placeholder="Enter email address to send test to" required>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-paper-plane me-1"></i>Send Test Email
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Email Configuration Help -->
+                    <div class="mt-4">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>Email Configuration Help</h6>
+                            <ul class="mb-0">
+                                <li><strong>Gmail:</strong> smtp.gmail.com, Port 587, Enable "Less secure app access" or use App Password</li>
+                                <li><strong>Outlook/Hotmail:</strong> smtp-mail.outlook.com, Port 587</li>
+                                <li><strong>Yahoo:</strong> smtp.mail.yahoo.com, Port 587</li>
+                                <li><strong>Custom SMTP:</strong> Use your organization's SMTP server details</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
