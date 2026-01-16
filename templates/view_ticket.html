@@ -1,8 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}Ticket #{{ ticket.id }} - School Helpdesk{% endblock %}
+{% block title %}Ticket #{{ ticket.id }} - Al Qeyam Helpdesk{% endblock %}
+
+{% block breadcrumb %}
+<div class="container mt-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_tickets') }}"><i class="fas fa-ticket-alt me-1"></i>Tickets</a></li>
+            <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-eye me-1"></i>Ticket #{{ ticket.id }}</li>
+        </ol>
+    </nav>
+</div>
+{% endblock %}
 
 {% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="text-white"><i class="fas fa-ticket-alt me-2"></i>Ticket Details</h2>
+        <p class="text-white">View and manage ticket information, comments, and status</p>
+    </div>
+</div>
 <div class="row">
     <div class="col-md-8">
         <!-- Ticket Details -->
@@ -15,7 +33,7 @@
                     <span class="badge bg-{{ 'primary' if ticket.category == 'IT' else 'success' }} me-2">
                         {{ ticket.category }}
                     </span>
-                    <span class="badge bg-{{ 'danger' if ticket.priority == 'Critical' else 'warning' if ticket.priority == 'High' else 'info' if ticket.priority == 'Medium' else 'success' }}">
+                    <span class="badge bg-{{ 'dark' if ticket.priority == 'Critical' else 'danger' if ticket.priority == 'High' else 'warning' if ticket.priority == 'Medium' else 'success' if ticket.priority == 'Low' else 'danger' }}">
                         {{ ticket.priority }}
                     </span>
                 </div>
@@ -35,11 +53,13 @@
                     <div class="col-md-6">
                         <small class="text-muted">
                             <strong>Status:</strong> 
-                            <span class="badge bg-{{ 'secondary' if ticket.status == 'Open' else 'warning' if ticket.status == 'Assigned' else 'info' if ticket.status == 'In Progress' else 'success' if ticket.status == 'Resolved' else 'dark' }}">
+                            <span class="badge bg-{{ 'danger' if ticket.status == 'Assigned' else 'warning' if ticket.status == 'In Progress' else 'success' if ticket.status == 'Closed' else 'secondary' }}">
                                 {{ ticket.status }}
                             </span><br>
                             {% if ticket.assignee %}
                                 <strong>Assigned to:</strong> {{ ticket.assignee.username }}
+                            {% elif ticket.assigned_to %}
+                                <strong>Assigned to:</strong> <span class="text-warning" title="Agent ID: {{ ticket.assigned_to }}">Agent #{{ ticket.assigned_to }}</span>
                             {% else %}
                                 <strong>Assigned to:</strong> <span class="text-muted">Unassigned</span>
                             {% endif %}
@@ -116,7 +136,7 @@
         {% endif %}
 
         <!-- Assign Ticket (for admin) -->
-        {% if current_user.role == 'admin' %}
+        {% if current_user.role in ['admin', 'super_admin'] %}
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>Assign Ticket</h5>
@@ -125,9 +145,11 @@
                 <form method="POST" action="{{ url_for('assign_ticket', ticket_id=ticket.id) }}">
                     <div class="mb-3">
                         <label for="agent_id" class="form-label">Assign to Agent</label>
-                        <select class="form-select" id="agent_id" name="agent_id">
+                        <select class="form-select" id="agent_id" name="agent_id" required>
                             <option value="">Select Agent</option>
-                            {% if ticket.category == 'IT' %}
+                            {# Debug: Category={{ ticket.category }}, IT={{ it_agents|length if it_agents else 0 }}, FM={{ fm_agents|length if fm_agents else 0 }}, HSE={{ hse_agents|length if hse_agents else 0 }} #}
+                            {% if ticket.category == 'IT' or ticket.category == 'it' %}
+                                {% if it_agents and it_agents|length > 0 %}
                                 <optgroup label="IT Agents">
                                 {% for agent in it_agents %}
                                 <option value="{{ agent.id }}" {% if ticket.assigned_to == agent.id %}selected{% endif %}>
@@ -135,7 +157,11 @@
                                 </option>
                                 {% endfor %}
                                 </optgroup>
-                            {% elif ticket.category == 'FM' %}
+                                {% else %}
+                                <option value="" disabled>No IT agents available</option>
+                                {% endif %}
+                            {% elif ticket.category == 'FM' or ticket.category == 'fm' %}
+                                {% if fm_agents and fm_agents|length > 0 %}
                                 <optgroup label="FM Agents">
                                 {% for agent in fm_agents %}
                                 <option value="{{ agent.id }}" {% if ticket.assigned_to == agent.id %}selected{% endif %}>
@@ -143,6 +169,63 @@
                                 </option>
                                 {% endfor %}
                                 </optgroup>
+                                {% else %}
+                                <option value="" disabled>No FM agents available</option>
+                                {% endif %}
+                            {% elif ticket.category == 'HSE' or ticket.category == 'hse' %}
+                                {% if hse_agents and hse_agents|length > 0 %}
+                                <optgroup label="HSE Agents">
+                                {% for agent in hse_agents %}
+                                <option value="{{ agent.id }}" {% if ticket.assigned_to == agent.id %}selected{% endif %}>
+                                    {{ agent.username }} - {{ agent.department or 'Health, Safety & Environment' }}
+                                </option>
+                                {% endfor %}
+                                </optgroup>
+                                {% endif %}
+                                {% if fm_agents and fm_agents|length > 0 %}
+                                <optgroup label="FM Agents (Admin Override)">
+                                {% for agent in fm_agents %}
+                                <option value="{{ agent.id }}" {% if ticket.assigned_to == agent.id %}selected{% endif %}>
+                                    {{ agent.username }} - {{ agent.department or 'Facilities Management' }}
+                                </option>
+                                {% endfor %}
+                                </optgroup>
+                                {% endif %}
+                                {% if (not hse_agents or hse_agents|length == 0) and (not fm_agents or fm_agents|length == 0) %}
+                                <option value="" disabled>No agents available</option>
+                                {% endif %}
+                            {% else %}
+                                {# Fallback: Show all available agents if category doesn't match #}
+                                {% if it_agents and it_agents|length > 0 %}
+                                <optgroup label="IT Agents">
+                                {% for agent in it_agents %}
+                                <option value="{{ agent.id }}" {% if ticket.assigned_to == agent.id %}selected{% endif %}>
+                                    {{ agent.username }} - {{ agent.department or 'IT' }}
+                                </option>
+                                {% endfor %}
+                                </optgroup>
+                                {% endif %}
+                                {% if fm_agents and fm_agents|length > 0 %}
+                                <optgroup label="FM Agents">
+                                {% for agent in fm_agents %}
+                                <option value="{{ agent.id }}" {% if ticket.assigned_to == agent.id %}selected{% endif %}>
+                                    {{ agent.username }} - {{ agent.department or 'Facilities Management' }}
+                                </option>
+                                {% endfor %}
+                                </optgroup>
+                                {% endif %}
+                                {% if hse_agents and hse_agents|length > 0 %}
+                                <optgroup label="HSE Agents">
+                                {% for agent in hse_agents %}
+                                <option value="{{ agent.id }}" {% if ticket.assigned_to == agent.id %}selected{% endif %}>
+                                    {{ agent.username }} - {{ agent.department or 'Health, Safety & Environment' }}
+                                </option>
+                                {% endfor %}
+                                </optgroup>
+                                {% endif %}
+                                {% if (not it_agents or it_agents|length == 0) and (not fm_agents or fm_agents|length == 0) and (not hse_agents or hse_agents|length == 0) %}
+                                <option value="" disabled>No agents available (Category: {{ ticket.category }})</option>
+                                {% endif %}
                             {% endif %}
                         </select>
                     </div>
@@ -169,13 +252,13 @@
                     </li>
                     <li class="mb-2">
                         <strong>Priority:</strong><br>
-                        <span class="badge bg-{{ 'danger' if ticket.priority == 'Critical' else 'warning' if ticket.priority == 'High' else 'info' if ticket.priority == 'Medium' else 'success' }}">
+                                                 <span class="badge bg-{{ 'dark' if ticket.priority == 'Critical' else 'danger' if ticket.priority == 'High' else 'warning' if ticket.priority == 'Medium' else 'success' if ticket.priority == 'Low' else 'danger' }}">
                             {{ ticket.priority }}
                         </span>
                     </li>
                     <li class="mb-2">
                         <strong>Status:</strong><br>
-                        <span class="badge bg-{{ 'secondary' if ticket.status == 'Open' else 'warning' if ticket.status == 'Assigned' else 'info' if ticket.status == 'In Progress' else 'success' if ticket.status == 'Resolved' else 'dark' }}">
+                                                 <span class="badge bg-{{ 'danger' if ticket.status == 'Assigned' else 'warning' if ticket.status == 'In Progress' else 'success' if ticket.status == 'Closed' else 'secondary' }}">
                             {{ ticket.status }}
                         </span>
                     </li>
@@ -187,6 +270,11 @@
                     <li class="mb-2">
                         <strong>Assigned to:</strong><br>
                         <small class="text-muted">{{ ticket.assignee.username }}</small>
+                    </li>
+                    {% elif ticket.assigned_to %}
+                    <li class="mb-2">
+                        <strong>Assigned to:</strong><br>
+                        <small class="text-warning" title="Agent ID: {{ ticket.assigned_to }}">Agent #{{ ticket.assigned_to }}</small>
                     </li>
                     {% endif %}
                 </ul>

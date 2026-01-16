@@ -1,12 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}All Tickets - School Helpdesk{% endblock %}
+{% block title %}All Tickets - Al Qeyam Helpdesk{% endblock %}
+
+{% block breadcrumb %}
+<div class="container mt-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i>Admin</a></li>
+            <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-ticket-alt me-1"></i>All Tickets</li>
+        </ol>
+    </nav>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
-        <h2><i class="fas fa-ticket-alt me-2"></i>All Tickets</h2>
-        <p class="text-muted">View and manage all tickets with advanced filtering options</p>
+        <h2 class="text-white"><i class="fas fa-ticket-alt me-2"></i>All Tickets</h2>
+        <p class="text-white">View and manage all tickets with advanced filtering options</p>
     </div>
 </div>
 
@@ -18,7 +30,7 @@
                 <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filter Options</h5>
             </div>
             <div class="card-body">
-                <form method="GET" class="row g-3">
+                <form method="GET" action="{{ url_for('admin_tickets') }}" class="row g-3">
                     <div class="col-md-3">
                         <label for="status" class="form-label">Status</label>
                         <select class="form-select" id="status" name="status">
@@ -36,6 +48,7 @@
                             <option value="">All Categories</option>
                             <option value="IT" {% if request.args.get('category') == 'IT' %}selected{% endif %}>IT</option>
                             <option value="FM" {% if request.args.get('category') == 'FM' %}selected{% endif %}>FM</option>
+                            <option value="HSE" {% if request.args.get('category') == 'HSE' %}selected{% endif %}>HSE</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -98,47 +111,31 @@
     <div class="col-md-2">
         <div class="card text-white bg-secondary">
             <div class="card-body text-center">
-                <h4>{{ filtered_tickets|length }}</h4>
+                <h4>{{ tickets|length }}</h4>
                 <small>Total Filtered</small>
             </div>
         </div>
     </div>
-    <div class="col-md-2">
-        <div class="card text-white bg-warning">
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
             <div class="card-body text-center">
-                <h4>{{ filtered_tickets|selectattr('status', 'equalto', 'Open')|list|length }}</h4>
-                <small>Open</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="card text-white bg-info">
-            <div class="card-body text-center">
-                <h4>{{ filtered_tickets|selectattr('status', 'equalto', 'Assigned')|list|length }}</h4>
+                <h4>{{ tickets|selectattr('status', 'equalto', 'Assigned')|list|length }}</h4>
                 <small>Assigned</small>
             </div>
         </div>
     </div>
-    <div class="col-md-2">
-        <div class="card text-white bg-primary">
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
             <div class="card-body text-center">
-                <h4>{{ filtered_tickets|selectattr('status', 'equalto', 'In Progress')|list|length }}</h4>
+                <h4>{{ tickets|selectattr('status', 'equalto', 'In Progress')|list|length }}</h4>
                 <small>In Progress</small>
             </div>
         </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-3">
         <div class="card text-white bg-success">
             <div class="card-body text-center">
-                <h4>{{ filtered_tickets|selectattr('status', 'equalto', 'Resolved')|list|length }}</h4>
-                <small>Resolved</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="card text-white bg-dark">
-            <div class="card-body text-center">
-                <h4>{{ filtered_tickets|selectattr('status', 'equalto', 'Closed')|list|length }}</h4>
+                <h4>{{ tickets|selectattr('status', 'equalto', 'Closed')|list|length }}</h4>
                 <small>Closed</small>
             </div>
         </div>
@@ -150,7 +147,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Tickets ({{ filtered_tickets|length }} found)</h5>
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Tickets ({{ tickets|length }} found)</h5>
                 <div>
                     <a href="{{ url_for('download_tickets_excel') }}?{{ request.query_string.decode() }}" class="btn btn-success btn-sm">
                         <i class="fas fa-file-excel me-1"></i>Export Excel
@@ -158,7 +155,7 @@
                 </div>
             </div>
             <div class="card-body">
-                {% if filtered_tickets %}
+                {% if tickets %}
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
@@ -176,7 +173,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for ticket in filtered_tickets %}
+                                {% for ticket in tickets %}
                                 <tr>
                                     <td>#{{ ticket.id }}</td>
                                     <td>
@@ -190,12 +187,12 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-{{ 'danger' if ticket.priority == 'Critical' else 'warning' if ticket.priority == 'High' else 'info' if ticket.priority == 'Medium' else 'success' }}">
+                                        <span class="badge bg-{{ 'dark' if ticket.priority == 'Critical' else 'danger' if ticket.priority == 'High' else 'warning' if ticket.priority == 'Medium' else 'success' if ticket.priority == 'Low' else 'danger' }}">
                                             {{ ticket.priority }}
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-{{ 'secondary' if ticket.status == 'Open' else 'warning' if ticket.status == 'Assigned' else 'info' if ticket.status == 'In Progress' else 'success' if ticket.status == 'Resolved' else 'dark' }}">
+                                        <span class="badge bg-{{ 'danger' if ticket.status == 'Assigned' else 'warning' if ticket.status == 'In Progress' else 'success' if ticket.status == 'Closed' else 'secondary' }}">
                                             {{ ticket.status }}
                                         </span>
                                     </td>
@@ -203,6 +200,8 @@
                                     <td>
                                         {% if ticket.assignee %}
                                             {{ ticket.assignee.username }}
+                                        {% elif ticket.assigned_to %}
+                                            <span class="text-warning" title="Agent ID: {{ ticket.assigned_to }}">Agent #{{ ticket.assigned_to }}</span>
                                         {% else %}
                                             <span class="text-muted">Unassigned</span>
                                         {% endif %}
@@ -214,7 +213,7 @@
                                             <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-outline-primary" title="View">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            {% if current_user.role == 'admin' %}
+                                            {% if current_user.role in ['admin', 'super_admin'] %}
                                             <button type="button" class="btn btn-sm btn-outline-warning" title="Quick Assign" 
                                                     onclick="showAssignModal({{ ticket.id }}, '{{ ticket.title }}')">
                                                 <i class="fas fa-user-plus"></i>
@@ -240,12 +239,12 @@
 </div>
 
 <!-- Quick Assign Modal -->
-<div class="modal fade" id="assignModal" tabindex="-1">
+<div class="modal fade" id="assignModal" tabindex="-1" aria-labelledby="assignModalLabel">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Quick Assign Ticket</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="assignModalLabel">Quick Assign Ticket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="this.blur();"></button>
             </div>
             <form id="assignForm" method="POST">
                 <div class="modal-body">
@@ -270,10 +269,45 @@
 </div>
 
 <script>
+const assignModalElement = document.getElementById('assignModal');
+if (assignModalElement && assignModalElement.parentElement !== document.body) {
+    document.body.appendChild(assignModalElement);
+}
+
 function showAssignModal(ticketId, ticketTitle) {
     document.getElementById('ticketTitle').textContent = ticketTitle;
-    document.getElementById('assignForm').action = `/admin/assign_ticket/${ticketId}`;
-    new bootstrap.Modal(document.getElementById('assignModal')).show();
+    document.getElementById('assignForm').action = `/ticket/${ticketId}/assign`;
+    const modalElement = document.getElementById('assignModal');
+    const modal = new bootstrap.Modal(modalElement);
+    
+    // Fix accessibility: Blur any focused elements before modal hides
+    modalElement.addEventListener('hide.bs.modal', function(event) {
+        const activeElement = document.activeElement;
+        if (activeElement && (activeElement.classList.contains('btn-close') || activeElement.closest('#assignModal'))) {
+            // Move focus to body before modal is hidden
+            document.body.focus();
+            if (document.activeElement !== document.body) {
+                document.body.setAttribute('tabindex', '-1');
+                document.body.focus();
+                document.body.removeAttribute('tabindex');
+            }
+        }
+    });
+    
+    modal.show();
 }
+
+// Ensure form submits correctly
+document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.querySelector('form[method="GET"]');
+    if (filterForm) {
+        filterForm.addEventListener('submit', function(e) {
+            // Log form submission for debugging
+            console.log('Filter form submitted');
+            const formData = new FormData(filterForm);
+            console.log('Form data:', Object.fromEntries(formData));
+        });
+    }
+});
 </script>
 {% endblock %} 
