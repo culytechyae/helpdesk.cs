@@ -869,7 +869,11 @@
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
-                                        <i class="fas fa-headset me-2"></i>Al Qeyam Helpdesk
+                {% if system_settings.logo_filename %}
+                    <img src="{{ url_for('static', filename='uploads/' + system_settings.logo_filename) }}" alt="Logo" style="height:32px;width:auto;margin-right:8px;vertical-align:middle;object-fit:contain;">
+                {% else %}
+                    <i class="fas fa-headset me-2"></i>
+                {% endif %}{{ system_settings.system_name }}
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>

@@ -65,6 +65,9 @@ except (PermissionError, OSError) as e:
 
 app = Flask(__name__)
 
+LOGO_UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+ALLOWED_LOGO_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'}
+
 # Add tojson filter for templates
 @app.template_filter('tojson')
 def tojson_filter(obj):
@@ -430,9 +433,30 @@ class EmailTemplate(db.Model):
     created_at = db.Column(db.DateTime, default=utc_now)
     updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
 
+class SystemSettings(db.Model):
+    __tablename__ = 'system_settings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    system_name = db.Column(db.String(100), nullable=False, default='Al Qeyam Helpdesk')
+    logo_filename = db.Column(db.String(200), nullable=True)
+    updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+@app.context_processor
+def inject_system_settings():
+    try:
+        settings = SystemSettings.query.first()
+        if not settings:
+            settings = SystemSettings(system_name='Al Qeyam Helpdesk')
+        return {'system_settings': settings}
+    except Exception:
+        class _Default:
+            system_name = 'Al Qeyam Helpdesk'
+            logo_filename = None
+        return {'system_settings': _Default()}
 
 def send_email_notification(to_email, subject, body):
     """Send email notification using configured SMTP settings"""
@@ -2798,7 +2822,53 @@ def admin_search_users():
 @app.route('/admin/settings')
 @require_module_access('settings')
 def admin_settings():
-    return render_template('admin_settings.html')
+    system_settings = SystemSettings.query.first()
+    return render_template('admin_settings.html', system_settings_row=system_settings)
+
+@app.route('/admin/update_system_settings', methods=['POST'])
+@require_module_access('settings')
+def update_system_settings():
+    try:
+        system_name = request.form.get('system_name', '').strip()
+        if not system_name:
+            flash('System name cannot be empty.', 'error')
+            return redirect(url_for('admin_settings'))
+
+        settings = SystemSettings.query.first()
+        if not settings:
+            settings = SystemSettings()
+            db.session.add(settings)
+
+        settings.system_name = system_name
+
+        # Handle logo upload
+        logo_file = request.files.get('logo_file')
+        if logo_file and logo_file.filename:
+            ext = logo_file.filename.rsplit('.', 1)[-1].lower()
+            if ext not in ALLOWED_LOGO_EXTENSIONS:
+                flash('Invalid file type. Allowed: png, jpg, jpeg, gif, svg, webp.', 'error')
+                return redirect(url_for('admin_settings'))
+            os.makedirs(LOGO_UPLOAD_FOLDER, exist_ok=True)
+            filename = secure_filename(f'logo.{ext}')
+            logo_file.save(os.path.join(LOGO_UPLOAD_FOLDER, filename))
+            settings.logo_filename = filename
+
+        # Handle logo removal
+        if request.form.get('remove_logo') == '1' and settings.logo_filename:
+            logo_path = os.path.join(LOGO_UPLOAD_FOLDER, settings.logo_filename)
+            if os.path.exists(logo_path):
+                os.remove(logo_path)
+            settings.logo_filename = None
+
+        settings.updated_at = utc_now()
+        db.session.commit()
+        flash('System settings updated successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'Error updating system settings: {str(e)}')
+        flash('Failed to update system settings.', 'error')
+
+    return redirect(url_for('admin_settings'))
 
 @app.route('/admin/module_permissions')
 @login_required
@@ -3337,7 +3407,15 @@ if __name__ == '__main__':
     with app.app_context():
         # Create database tables
         db.create_all()
-        
+
+        # Ensure logo upload directory exists
+        os.makedirs(LOGO_UPLOAD_FOLDER, exist_ok=True)
+
+        # Create default system settings if absent
+        if not SystemSettings.query.first():
+            db.session.add(SystemSettings(system_name='Al Qeyam Helpdesk'))
+            db.session.commit()
+
         # Create super admin user if it doesn't exist
         super_admin = User.query.filter_by(username='admin').first()
         if not super_admin:

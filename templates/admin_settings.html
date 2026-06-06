@@ -1,9 +1,59 @@
 {% extends "base.html" %}
 
-{% block title %}Email Settings - School Helpdesk{% endblock %}
+{% block title %}Settings - {{ system_settings.system_name }}{% endblock %}
 
 {% block content %}
 <div class="container">
+
+    <!-- System Branding -->
+    <div class="row mb-4">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-paint-brush me-2"></i>System Branding
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('update_system_settings') }}" enctype="multipart/form-data">
+
+                        <div class="mb-3">
+                            <label for="system_name" class="form-label">System Name</label>
+                            <input type="text" class="form-control" id="system_name" name="system_name"
+                                   value="{{ system_settings_row.system_name if system_settings_row else system_settings.system_name }}"
+                                   placeholder="e.g. Al Qeyam Helpdesk" required>
+                            <div class="form-text">Displayed in the navbar and page titles.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="logo_file" class="form-label">Logo Image</label>
+                            {% if system_settings.logo_filename %}
+                            <div class="mb-2 d-flex align-items-center gap-3">
+                                <img src="{{ url_for('static', filename='uploads/' + system_settings.logo_filename) }}"
+                                     alt="Current Logo" style="height:48px;max-width:160px;object-fit:contain;border:1px solid #dee2e6;border-radius:4px;padding:4px;">
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" name="remove_logo" value="1" id="removeLogo">
+                                    <label class="form-check-label text-danger" for="removeLogo">Remove current logo</label>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="logo_file" name="logo_file"
+                                   accept=".png,.jpg,.jpeg,.gif,.svg,.webp">
+                            <div class="form-text">Upload a PNG, JPG, GIF, SVG, or WebP image (recommended height: 32–48 px).</div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Save Branding
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Settings (existing) -->
     <div class="row">
         <div class="col-md-8 mx-auto">
             <div class="card">
