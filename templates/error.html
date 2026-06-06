@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Error – {{ system_settings.system_name }}{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-center" style="min-height:60vh;">
+    <div class="text-center">
+        <div style="font-size:5rem;color:rgba(255,255,255,0.4);margin-bottom:1rem;">
+            <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <h2 class="mb-3 fw-bold text-white">Something Went Wrong</h2>
+        {% if error %}
+        <div class="alert alert-danger mx-auto mb-4" style="max-width:500px;">
+            <i class="fas fa-bug me-2"></i>{{ error }}
+        </div>
+        {% else %}
+        <p class="text-white-50 mb-4">An unexpected error occurred. Please try again.</p>
+        {% endif %}
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg px-4">
+                <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+            </a>
+            <a href="javascript:history.back()" class="btn btn-secondary btn-lg px-4">
+                <i class="fas fa-arrow-left me-2"></i>Go Back
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

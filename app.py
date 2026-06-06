@@ -2613,7 +2613,7 @@ def admin_summary_reports():
                                  category_data={})
         except Exception as template_error:
             logger.error(f'Error rendering fallback template: {str(template_error)}')
-            return f'<h1>Error Loading Summary Reports</h1><p>{str(e)}</p><p>Check server logs for details.</p>', 500
+            return render_template('500.html'), 500
 
 @app.route('/admin/search_tickets', methods=['GET', 'POST'])
 @require_module_access('search_tickets')
@@ -2801,18 +2801,7 @@ def admin_search_tickets():
                                  all_agents=[])
         except Exception as fallback_error:
             logger.error(f'Error in fallback template: {str(fallback_error)}')
-            # Last resort - return simple error page
-            return f'''
-            <html>
-            <head><title>Error</title></head>
-            <body>
-                <h1>Error Loading Search Page</h1>
-                <p>Template error: {str(template_error)}</p>
-                <p>Fallback error: {str(fallback_error)}</p>
-                <p><a href="{url_for('dashboard')}">Go to Dashboard</a></p>
-            </body>
-            </html>
-            ''', 500
+            return render_template('500.html'), 500
 
 @app.route('/admin/search_users')
 @require_module_access('search_users')
@@ -3159,21 +3148,17 @@ def test_module_access(module_name):
         # Get module permissions
         allowed_roles = MODULE_PERMISSIONS.get(module_name, [])
         
-        return f"""
-        <h3>Module Access Test Results</h3>
-        <p><strong>User:</strong> {current_user.username}</p>
-        <p><strong>User Role:</strong> {current_user.role}</p>
-        <p><strong>User ID:</strong> {current_user.id}</p>
-        <p><strong>Module:</strong> {module_name}</p>
-        <p><strong>Allowed Roles:</strong> {allowed_roles}</p>
-        <p><strong>Has Access:</strong> {'✅ Yes' if has_access else '❌ No'}</p>
-        <p><strong>User Role in Allowed Roles:</strong> {'✅ Yes' if current_user.role in allowed_roles else '❌ No'}</p>
-        <p><strong>Is Super Admin:</strong> {'✅ Yes' if current_user.role == 'super_admin' else '❌ No'}</p>
-        <p><strong>Is Admin:</strong> {'✅ Yes' if current_user.role == 'admin' else '❌ No'}</p>
-        """
-        
+        result = {
+            'username': current_user.username,
+            'role': current_user.role,
+            'module': module_name,
+            'allowed_roles': allowed_roles,
+            'has_access': has_access,
+        }
+        return jsonify(result)
+
     except Exception as e:
-        return f"Error testing module access: {str(e)}"
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/backup_success')
 @login_required

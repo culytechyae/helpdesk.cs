@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}500 – Server Error – {{ system_settings.system_name }}{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-center" style="min-height:60vh;">
+    <div class="text-center">
+        <div style="font-size:6rem;font-weight:900;background:linear-gradient(135deg,#dc3545,#e83e8c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;">500</div>
+        <h2 class="mt-2 mb-3 fw-bold text-white">Internal Server Error</h2>
+        <p class="text-white-50 mb-4">Something went wrong on our end. The team has been notified.<br>Please try again in a moment.</p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg px-4">
+                <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+            </a>
+            <a href="javascript:location.reload()" class="btn btn-secondary btn-lg px-4">
+                <i class="fas fa-redo me-2"></i>Try Again
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
