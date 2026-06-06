@@ -1,33 +1,79 @@
 {% extends "base.html" %}
-
-{% block title %}Login - School Helpdesk{% endblock %}
+{% block title %}Login – {{ system_settings.system_name }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0">
-                    <i class="fas fa-sign-in-alt me-2"></i>Login
-                </h4>
-            </div>
-            <div class="card-body">
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
+<div class="row justify-content-center align-items-center" style="min-height:75vh;">
+    <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+
+        <!-- Logo / Brand -->
+        <div class="text-center mb-4">
+            {% if system_settings.logo_filename %}
+                <img src="{{ url_for('static', filename='uploads/' + system_settings.logo_filename) }}"
+                     alt="Logo" style="height:64px;object-fit:contain;margin-bottom:12px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.3));">
+                <br>
+            {% else %}
+                <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                    <i class="fas fa-headset fa-2x text-white"></i>
+                </div>
+            {% endif %}
+            <h4 class="text-white fw-bold mb-0">{{ system_settings.system_name }}</h4>
+            <p class="text-white-50 small">Sign in to your account</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="card shadow-lg border-0" style="border-radius:20px;overflow:hidden;">
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" autocomplete="on">
+                    <div class="mb-4">
+                        <label for="username" class="form-label fw-semibold text-muted small text-uppercase letter-spacing-1">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-0 bg-light"><i class="fas fa-user text-muted"></i></span>
+                            <input type="text" class="form-control form-control-lg border-0 bg-light ps-2"
+                                   id="username" name="username" placeholder="Enter username"
+                                   autocomplete="username" required autofocus>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold text-muted small text-uppercase">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-0 bg-light"><i class="fas fa-lock text-muted"></i></span>
+                            <input type="password" class="form-control form-control-lg border-0 bg-light ps-2"
+                                   id="password" name="password" placeholder="Enter password"
+                                   autocomplete="current-password" required>
+                            <button type="button" class="input-group-text border-0 bg-light"
+                                    onclick="togglePwd()" tabindex="-1" style="cursor:pointer;">
+                                <i class="fas fa-eye text-muted" id="pwdIcon"></i>
+                            </button>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-sign-in-alt me-2"></i>Login
-                    </button>
+                    <div class="d-grid mt-2">
+                        <button type="submit" class="btn btn-primary btn-lg fw-semibold" style="border-radius:12px;padding:.75rem;">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </button>
+                    </div>
                 </form>
             </div>
-
         </div>
+
+        <p class="text-center text-white-50 small mt-4 mb-0">
+            <i class="fas fa-shield-alt me-1"></i>Secure helpdesk portal
+        </p>
     </div>
 </div>
-{% endblock %} 
+
+<style>
+.input-group-text { border-radius: 12px 0 0 12px !important; }
+.input-group .form-control { border-radius: 0 !important; }
+.input-group .input-group-text:last-child { border-radius: 0 12px 12px 0 !important; }
+.input-group .form-control:focus { box-shadow: none; background: #f1f3f5 !important; }
+</style>
+<script>
+function togglePwd() {
+    const f = document.getElementById('password');
+    const i = document.getElementById('pwdIcon');
+    const show = f.type === 'password';
+    f.type = show ? 'text' : 'password';
+    i.className = show ? 'fas fa-eye-slash text-muted' : 'fas fa-eye text-muted';
+}
+</script>
+{% endblock %}

@@ -1,141 +1,157 @@
 {% extends "base.html" %}
-
-{% block title %}My Dashboard - School Helpdesk{% endblock %}
+{% block title %}My Dashboard – {{ system_settings.system_name }}{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h2><i class="fas fa-user me-2"></i>My Dashboard</h2>
-        <p class="text-muted">Welcome back, {{ current_user.username }}!</p>
+<!-- Page Header -->
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold text-white mb-1"><i class="fas fa-tachometer-alt me-2"></i>My Dashboard</h2>
+        <p class="text-white-50 mb-0">Welcome back, <strong class="text-white">{{ current_user.username }}</strong>!</p>
     </div>
+    <a href="{{ url_for('create_ticket') }}" class="btn btn-primary px-4">
+        <i class="fas fa-plus me-2"></i>New Ticket
+    </a>
 </div>
 
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ tickets|length }}</h4>
-                        <p class="card-text">My Tickets</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-ticket-alt fa-2x"></i>
-                    </div>
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    {% set total = tickets|length %}
+    {% set open_c = tickets|selectattr('status','equalto','Open')|list|length %}
+    {% set inprog = tickets|selectattr('status','equalto','In Progress')|list|length %}
+    {% set resolved = tickets|selectattr('status','equalto','Resolved')|list|length %}
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 h-100" style="background:rgba(255,255,255,0.95);border-radius:16px;">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#2c5f5f,#4a9b9b);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-ticket-alt text-white"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4 lh-1" style="color:#2c5f5f;">{{ total }}</div>
+                    <div class="text-muted small">Total Tickets</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-warning">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ tickets|selectattr('status', 'equalto', 'Open')|list|length }}</h4>
-                        <p class="card-text">Open Tickets</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-exclamation-circle fa-2x"></i>
-                    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 h-100" style="background:rgba(255,255,255,0.95);border-radius:16px;">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#fd7e14,#ffc107);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-folder-open text-white"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4 lh-1" style="color:#fd7e14;">{{ open_c }}</div>
+                    <div class="text-muted small">Open</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ tickets|selectattr('status', 'equalto', 'Resolved')|list|length }}</h4>
-                        <p class="card-text">Resolved Tickets</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-check-circle fa-2x"></i>
-                    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 h-100" style="background:rgba(255,255,255,0.95);border-radius:16px;">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#4a9b9b,#6bc4c4);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-spinner text-white"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4 lh-1" style="color:#4a9b9b;">{{ inprog }}</div>
+                    <div class="text-muted small">In Progress</div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <a href="{{ url_for('create_ticket') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i>Create New Ticket
-                </a>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 h-100" style="background:rgba(255,255,255,0.95);border-radius:16px;">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#28a745,#20c997);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-check-circle text-white"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4 lh-1" style="color:#28a745;">{{ resolved }}</div>
+                    <div class="text-muted small">Resolved</div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- My Tickets -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-ticket-alt me-2"></i>My Tickets</h5>
-            </div>
-            <div class="card-body">
-                {% if tickets %}
-                    <div class="row">
-                        {% for ticket in tickets %}
-                        <div class="col-md-6 col-lg-4 mb-3">
-                            <div class="card ticket-card priority-{{ ticket.priority.lower() }} status-{{ ticket.status.lower().replace(' ', '-') }}">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h6 class="card-title mb-0">
-                                            <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="text-decoration-none">
-                                                {{ ticket.title }}
-                                            </a>
-                                        </h6>
-                                        <span class="badge bg-{{ 'primary' if ticket.category == 'IT' else 'success' }}">
-                                            {{ ticket.category }}
-                                        </span>
-                                    </div>
-                                    <p class="card-text text-muted small">{{ ticket.description[:100] }}{% if ticket.description|length > 100 %}...{% endif %}</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="badge bg-{{ 'danger' if ticket.priority == 'Critical' else 'warning' if ticket.priority == 'High' else 'info' if ticket.priority == 'Medium' else 'success' }}">
-                                            {{ ticket.priority }}
-                                        </span>
-                                        <span class="badge bg-{{ 'secondary' if ticket.status == 'Open' else 'warning' if ticket.status == 'Assigned' else 'info' if ticket.status == 'In Progress' else 'success' if ticket.status == 'Resolved' else 'dark' }}">
-                                            {{ ticket.status }}
-                                        </span>
-                                    </div>
-                                    <div class="mt-2">
-                                        <small class="text-muted">
-                                            <i class="fas fa-clock me-1"></i>{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}
-                                        </small>
-                                    </div>
-                                    {% if ticket.assignee %}
-                                    <div class="mt-1">
-                                        <small class="text-muted">
-                                            <i class="fas fa-user me-1"></i>Assigned to {{ ticket.assignee.username }}
-                                        </small>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">You haven't created any tickets yet.</p>
-                        <a href="{{ url_for('create_ticket') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-1"></i>Create Your First Ticket
-                        </a>
-                    </div>
-                {% endif %}
-            </div>
+<div class="card border-0" style="border-radius:16px;">
+    <div class="card-header d-flex align-items-center justify-content-between py-3">
+        <h5 class="mb-0 fw-semibold"><i class="fas fa-ticket-alt me-2"></i>My Tickets</h5>
+        <a href="{{ url_for('my_ticket_summary') }}" class="btn btn-sm btn-outline-light">
+            <i class="fas fa-chart-line me-1"></i>Summary
+        </a>
+    </div>
+    <div class="card-body p-0">
+        {% if tickets %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4" style="width:60px;">#</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Assigned To</th>
+                        <th>Created</th>
+                        <th class="pe-4 text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td class="ps-4 text-muted fw-semibold">#{{ ticket.id }}</td>
+                        <td>
+                            <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="fw-semibold text-decoration-none" style="color:#2c5f5f;">
+                                {{ ticket.title }}
+                            </a>
+                            {% if ticket.description %}
+                            <div class="text-muted small text-truncate" style="max-width:220px;">{{ ticket.description[:80] }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill" style="background:{{ '#2c5f5f' if ticket.category == 'IT' else '#28a745' }};padding:6px 10px;">
+                                <i class="fas fa-{{ 'laptop' if ticket.category == 'IT' else 'tools' }} me-1"></i>{{ ticket.category }}
+                            </span>
+                        </td>
+                        <td>
+                            {% set pc = {'Critical':'#dc3545','High':'#fd7e14','Medium':'#ffc107','Low':'#28a745'} %}
+                            <span class="badge rounded-pill" style="background:{{ pc.get(ticket.priority,'#6c757d') }};padding:6px 10px;">{{ ticket.priority }}</span>
+                        </td>
+                        <td>
+                            {% set sc = {'Open':'#6c757d','Assigned':'#fd7e14','In Progress':'#4a9b9b','Resolved':'#28a745','Closed':'#343a40'} %}
+                            <span class="badge rounded-pill" style="background:{{ sc.get(ticket.status,'#6c757d') }};padding:6px 10px;">{{ ticket.status }}</span>
+                        </td>
+                        <td>
+                            {% if ticket.assignee %}
+                                <i class="fas fa-user me-1 text-muted"></i><small>{{ ticket.assignee.username }}</small>
+                            {% else %}
+                                <small class="text-muted">Unassigned</small>
+                            {% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ ticket.created_at.strftime('%d %b %Y') }}</small></td>
+                        <td class="pe-4 text-end">
+                            <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-primary px-3">
+                                <i class="fas fa-eye me-1"></i>View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div style="width:80px;height:80px;border-radius:50%;background:rgba(44,95,95,0.08);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                <i class="fas fa-ticket-alt fa-2x" style="color:#4a9b9b;"></i>
+            </div>
+            <h5 class="fw-semibold mb-1" style="color:#2c5f5f;">No tickets yet</h5>
+            <p class="text-muted mb-3">You haven't submitted any support tickets.</p>
+            <a href="{{ url_for('create_ticket') }}" class="btn btn-primary px-4">
+                <i class="fas fa-plus me-2"></i>Create Your First Ticket
+            </a>
+        </div>
+        {% endif %}
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

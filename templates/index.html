@@ -1,43 +1,76 @@
 {% extends "base.html" %}
-
-{% block title %}Welcome - School Helpdesk{% endblock %}
+{% block title %}Welcome – {{ system_settings.system_name }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 text-center">
-        <div class="card">
-            <div class="card-body">
-                <h1 class="display-4 text-primary mb-4">
-                    <i class="fas fa-headset me-3"></i>School Helpdesk
-                </h1>
-                <p class="lead mb-4">
-                    Welcome to the School Helpdesk System. Get support for IT and Facilities Management issues.
-                </p>
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <i class="fas fa-laptop fa-3x text-primary mb-3"></i>
-                                <h5 class="card-title">IT Support</h5>
-                                <p class="card-text">Get help with computer issues, software problems, and technical support.</p>
-                            </div>
+<div class="row justify-content-center align-items-center" style="min-height:80vh;">
+    <div class="col-12 col-lg-10">
+
+        <!-- Hero -->
+        <div class="text-center mb-5">
+            {% if system_settings.logo_filename %}
+                <img src="{{ url_for('static', filename='uploads/' + system_settings.logo_filename) }}"
+                     alt="Logo" style="height:80px;object-fit:contain;margin-bottom:16px;filter:drop-shadow(0 6px 20px rgba(0,0,0,0.3));">
+                <br>
+            {% else %}
+                <div style="width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <i class="fas fa-headset fa-3x text-white"></i>
+                </div>
+            {% endif %}
+            <h1 class="display-5 fw-bold text-white mb-2">{{ system_settings.system_name }}</h1>
+            <p class="lead text-white-50 mb-4">Your one-stop support portal for IT and Facilities Management</p>
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg px-5 fw-semibold" style="border-radius:50px;">
+                <i class="fas fa-sign-in-alt me-2"></i>Sign In to Get Started
+            </a>
+        </div>
+
+        <!-- Feature Cards -->
+        <div class="row g-4 justify-content-center">
+            <div class="col-12 col-md-5">
+                <div class="card text-center h-100 border-0" style="background:rgba(255,255,255,0.12);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.2) !important;border-radius:20px;">
+                    <div class="card-body p-4 p-lg-5">
+                        <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#2c5f5f,#4a9b9b);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(44,95,95,0.4);">
+                            <i class="fas fa-laptop fa-2x text-white"></i>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <i class="fas fa-tools fa-3x text-success mb-3"></i>
-                                <h5 class="card-title">Facilities Management</h5>
-                                <p class="card-text">Report maintenance issues, building problems, and facility requests.</p>
-                            </div>
-                        </div>
+                        <h4 class="fw-bold text-white mb-2">IT Support</h4>
+                        <p class="text-white-50 mb-0">Get help with computers, software, network issues and technical problems.</p>
                     </div>
                 </div>
-                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-sign-in-alt me-2"></i>Login to Get Started
-                </a>
+            </div>
+            <div class="col-12 col-md-5">
+                <div class="card text-center h-100 border-0" style="background:rgba(255,255,255,0.12);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.2) !important;border-radius:20px;">
+                    <div class="card-body p-4 p-lg-5">
+                        <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#28a745,#20c997);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(40,167,69,0.4);">
+                            <i class="fas fa-tools fa-2x text-white"></i>
+                        </div>
+                        <h4 class="fw-bold text-white mb-2">Facilities Management</h4>
+                        <p class="text-white-50 mb-0">Report maintenance issues, room bookings, and facility requests.</p>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- Stats strip -->
+        <div class="row g-3 justify-content-center mt-2">
+            <div class="col-auto">
+                <div class="d-flex align-items-center gap-2" style="background:rgba(255,255,255,0.1);border-radius:50px;padding:10px 20px;border:1px solid rgba(255,255,255,0.15);">
+                    <i class="fas fa-clock text-white-50"></i>
+                    <span class="text-white-50 small">Fast response times</span>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="d-flex align-items-center gap-2" style="background:rgba(255,255,255,0.1);border-radius:50px;padding:10px 20px;border:1px solid rgba(255,255,255,0.15);">
+                    <i class="fas fa-shield-alt text-white-50"></i>
+                    <span class="text-white-50 small">Secure &amp; private</span>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="d-flex align-items-center gap-2" style="background:rgba(255,255,255,0.1);border-radius:50px;padding:10px 20px;border:1px solid rgba(255,255,255,0.15);">
+                    <i class="fas fa-bell text-white-50"></i>
+                    <span class="text-white-50 small">Real-time notifications</span>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
