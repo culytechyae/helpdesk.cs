@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
-{% block title %}{{ page_title }} - Al Qeyam Helpdesk{% endblock %}
+{% block title %}{{ page_title }} – {{ system_settings.system_name }}{% endblock %}
 
 {% block breadcrumb %}
 <div class="container mt-3">
@@ -223,4 +223,5 @@ function showAssignModal(ticketId, ticketTitle) {
 }
 </script>
 {% endblock %}
+
 

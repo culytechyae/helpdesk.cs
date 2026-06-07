@@ -336,6 +336,7 @@ db_manager = DatabaseManager()
 # Configure Flask-SQLAlchemy with current database
 app.config['SQLALCHEMY_DATABASE_URI'] = db_manager.get_current_db_uri()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config.setdefault('MAX_CONTENT_LENGTH', 16 * 1024 * 1024)  # 16 MB upload limit
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -457,6 +458,17 @@ def inject_system_settings():
             system_name = 'Al Qeyam Helpdesk'
             logo_filename = None
         return {'system_settings': _Default()}
+
+# Ensure all tables exist regardless of how the app is started (dev server, gunicorn, etc.)
+def _init_db():
+    with app.app_context():
+        db.create_all()
+        os.makedirs(LOGO_UPLOAD_FOLDER, exist_ok=True)
+        if not SystemSettings.query.first():
+            db.session.add(SystemSettings(system_name='Al Qeyam Helpdesk'))
+            db.session.commit()
+
+_init_db()
 
 def send_email_notification(to_email, subject, body):
     """Send email notification using configured SMTP settings"""
@@ -2811,8 +2823,11 @@ def admin_search_users():
 @app.route('/admin/settings')
 @require_module_access('settings')
 def admin_settings():
-    system_settings = SystemSettings.query.first()
-    return render_template('admin_settings.html', system_settings_row=system_settings)
+    try:
+        system_settings_row = SystemSettings.query.first()
+    except Exception:
+        system_settings_row = None
+    return render_template('admin_settings.html', system_settings_row=system_settings_row)
 
 @app.route('/admin/update_system_settings', methods=['POST'])
 @require_module_access('settings')

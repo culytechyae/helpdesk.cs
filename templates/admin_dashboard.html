@@ -1,297 +1,280 @@
 {% extends "base.html" %}
-
-{% block title %}Admin Dashboard - School Helpdesk{% endblock %}
+{% block title %}Admin Dashboard – {{ system_settings.system_name }}{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h2><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</h2>
+<!-- Header -->
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold text-white mb-1"><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</h2>
+        <p class="text-white-50 mb-0">System overview and quick actions</p>
     </div>
+    <a href="{{ url_for('create_ticket') }}" class="btn btn-primary px-4">
+        <i class="fas fa-plus me-2"></i>New Ticket
+    </a>
 </div>
 
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ tickets|length }}</h4>
-                        <p class="card-text">Total Tickets</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-ticket-alt fa-2x"></i>
-                    </div>
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    {% set total_c = tickets|length %}
+    {% set open_c = tickets|selectattr('status','equalto','Open')|list|length %}
+    {% set inprog_c = tickets|selectattr('status','equalto','In Progress')|list|length %}
+    {% set resolved_c = tickets|selectattr('status','equalto','Resolved')|list|length %}
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 h-100" style="background:rgba(255,255,255,0.95);border-radius:16px;">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#2c5f5f,#4a9b9b);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-ticket-alt text-white"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4 lh-1" style="color:#2c5f5f;">{{ total_c }}</div>
+                    <div class="text-muted small">Total Tickets</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ tickets|selectattr('status', 'equalto', 'Open')|list|length }}</h4>
-                        <p class="card-text">Open Tickets</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-exclamation-circle fa-2x"></i>
-                    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 h-100" style="background:rgba(255,255,255,0.95);border-radius:16px;">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#fd7e14,#ffc107);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-folder-open text-white"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4 lh-1" style="color:#fd7e14;">{{ open_c }}</div>
+                    <div class="text-muted small">Open</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-info">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ it_agents|length }}</h4>
-                        <p class="card-text">IT Agents</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-laptop fa-2x"></i>
-                    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 h-100" style="background:rgba(255,255,255,0.95);border-radius:16px;">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#17a2b8,#6bc4c4);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-laptop text-white"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4 lh-1" style="color:#17a2b8;">{{ it_agents|length }}</div>
+                    <div class="text-muted small">IT Agents</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ fm_agents|length }}</h4>
-                        <p class="card-text">FM Agents</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-tools fa-2x"></i>
-                    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 h-100" style="background:rgba(255,255,255,0.95);border-radius:16px;">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#28a745,#20c997);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-tools text-white"></i>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <a href="{{ url_for('create_user') }}" class="btn btn-primary btn-lg w-100 mb-2">
-                            <i class="fas fa-user-plus me-2"></i>Create User
-                        </a>
-                        <a href="{{ url_for('admin_users') }}" class="btn btn-secondary btn-lg w-100 mb-2">
-                            <i class="fas fa-users me-2"></i>Manage Users
-                        </a>
-                        <a href="{{ url_for('admin_settings') }}" class="btn btn-info btn-lg w-100 mb-2">
-                            <i class="fas fa-cog me-2"></i>Email Settings
-                        </a>
-                        <a href="{{ url_for('admin_email_templates') }}" class="btn btn-dark btn-lg w-100 mb-2">
-                            <i class="fas fa-envelope me-2"></i>Email Templates
-                        </a>
-                        <a href="{{ url_for('admin_summary_reports') }}" class="btn btn-info btn-lg w-100 mb-2">
-                            <i class="fas fa-chart-bar me-2"></i>Summary Reports
-                        </a>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <a href="{{ url_for('admin_database_management') }}" class="btn btn-secondary btn-lg w-100 mb-2">
-                            <i class="fas fa-database me-2"></i>Database Management
-                        </a>
-                        <a href="{{ url_for('admin_search_tickets') }}" class="btn btn-primary btn-lg w-100 mb-2">
-                            <i class="fas fa-search me-2"></i>Search Tickets
-                        </a>
-                        <a href="{{ url_for('admin_tickets') }}" class="btn btn-success btn-lg w-100 mb-2">
-                            <i class="fas fa-ticket-alt me-2"></i>All Tickets
-                        </a>
-                        <a href="{{ url_for('admin_search_users') }}" class="btn btn-warning btn-lg w-100 mb-2">
-                            <i class="fas fa-user-search me-2"></i>Search Users
-                        </a>
-                        <a href="{{ url_for('download_tickets_excel') }}" class="btn btn-success btn-lg w-100 mb-2">
-                            <i class="fas fa-file-excel me-2"></i>Download Tickets (Excel)
-                        </a>
-                        <a href="{{ url_for('download_summary_pdf') }}" class="btn btn-danger btn-lg w-100 mb-2">
-                            <i class="fas fa-file-pdf me-2"></i>Download Summary (PDF)
-                        </a>
-                        <form method="POST" action="{{ url_for('send_daily_summary') }}" class="w-100">
-                            <button type="submit" class="btn btn-warning btn-lg w-100" onclick="return confirm('Send daily summary email to curlytechy27@gmail.com?')">
-                                <i class="fas fa-envelope me-2"></i>Send Daily Summary Email
-                            </button>
-                        </form>
-                    </div>
+                <div>
+                    <div class="fw-bold fs-4 lh-1" style="color:#28a745;">{{ fm_agents|length }}</div>
+                    <div class="text-muted small">FM Agents</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Charts Section -->
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Ticket Status Overview</h5>
+<!-- Charts + Quick Actions -->
+<div class="row g-4 mb-4">
+    <!-- Status Chart -->
+    <div class="col-lg-4">
+        <div class="card border-0 h-100" style="border-radius:16px;">
+            <div class="card-header py-3">
+                <h6 class="mb-0 fw-semibold"><i class="fas fa-chart-pie me-2"></i>Ticket Status</h6>
             </div>
-            <div class="card-body">
-                <canvas id="statusChart" width="300" height="150"></canvas>
+            <div class="card-body d-flex align-items-center justify-content-center p-3">
+                <canvas id="statusChart" style="max-height:220px;"></canvas>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Category Distribution</h5>
+
+    <!-- Category Chart -->
+    <div class="col-lg-4">
+        <div class="card border-0 h-100" style="border-radius:16px;">
+            <div class="card-header py-3">
+                <h6 class="mb-0 fw-semibold"><i class="fas fa-chart-bar me-2"></i>By Category</h6>
             </div>
-            <div class="card-body">
-                <canvas id="categoryChart" width="300" height="150"></canvas>
+            <div class="card-body d-flex align-items-center justify-content-center p-3">
+                <canvas id="categoryChart" style="max-height:220px;"></canvas>
             </div>
         </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4">
+        <div class="card border-0 h-100" style="border-radius:16px;">
+            <div class="card-header py-3">
+                <h6 class="mb-0 fw-semibold"><i class="fas fa-bolt me-2"></i>Quick Actions</h6>
+            </div>
+            <div class="card-body p-3">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('create_user') }}" class="btn btn-primary d-flex align-items-center gap-2">
+                        <i class="fas fa-user-plus" style="width:16px;"></i>Create User
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary d-flex align-items-center gap-2">
+                        <i class="fas fa-users" style="width:16px;"></i>Manage Users
+                    </a>
+                    <a href="{{ url_for('admin_tickets') }}" class="btn btn-success d-flex align-items-center gap-2">
+                        <i class="fas fa-ticket-alt" style="width:16px;"></i>All Tickets
+                    </a>
+                    <a href="{{ url_for('admin_search_tickets') }}" class="btn btn-info d-flex align-items-center gap-2">
+                        <i class="fas fa-search" style="width:16px;"></i>Search Tickets
+                    </a>
+                    <a href="{{ url_for('admin_settings') }}" class="btn btn-warning d-flex align-items-center gap-2">
+                        <i class="fas fa-cog" style="width:16px;"></i>Settings
+                    </a>
+                    <a href="{{ url_for('admin_summary_reports') }}" class="btn btn-secondary d-flex align-items-center gap-2">
+                        <i class="fas fa-chart-bar" style="width:16px;"></i>Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- More Actions Row -->
+<div class="row g-3 mb-4">
+    <div class="col-auto">
+        <a href="{{ url_for('admin_email_templates') }}" class="btn btn-outline-light px-3">
+            <i class="fas fa-envelope me-2"></i>Email Templates
+        </a>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('admin_database_management') }}" class="btn btn-outline-light px-3">
+            <i class="fas fa-database me-2"></i>Database
+        </a>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('admin_search_users') }}" class="btn btn-outline-light px-3">
+            <i class="fas fa-user-search me-2"></i>Search Users
+        </a>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('download_tickets_excel') }}" class="btn btn-outline-light px-3">
+            <i class="fas fa-file-excel me-2"></i>Export Excel
+        </a>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('download_summary_pdf') }}" class="btn btn-outline-light px-3">
+            <i class="fas fa-file-pdf me-2"></i>Export PDF
+        </a>
+    </div>
+    <div class="col-auto">
+        <form method="POST" action="{{ url_for('send_daily_summary') }}" class="d-inline">
+            <button type="submit" class="btn btn-outline-light px-3"
+                    onclick="return confirm('Send daily summary email?')">
+                <i class="fas fa-paper-plane me-2"></i>Daily Summary Email
+            </button>
+        </form>
     </div>
 </div>
 
 <!-- Recent Tickets -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-ticket-alt me-2"></i>Recent Tickets</h5>
-            </div>
-            <div class="card-body">
-                {% if tickets %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Title</th>
-                                    <th>Category</th>
-                                    <th>Priority</th>
-                                    <th>Status</th>
-                                    <th>Created By</th>
-                                    <th>Assigned To</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for ticket in tickets[:10] %}
-                                <tr>
-                                    <td>#{{ ticket.id }}</td>
-                                    <td>
-                                        <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="text-decoration-none">
-                                            {{ ticket.title }}
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{{ 'primary' if ticket.category == 'IT' else 'success' }}">
-                                            {{ ticket.category }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{{ 'danger' if ticket.priority == 'Critical' else 'warning' if ticket.priority == 'High' else 'info' if ticket.priority == 'Medium' else 'success' }}">
-                                            {{ ticket.priority }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{{ 'secondary' if ticket.status == 'Open' else 'warning' if ticket.status == 'Assigned' else 'info' if ticket.status == 'In Progress' else 'success' if ticket.status == 'Resolved' else 'dark' }}">
-                                            {{ ticket.status }}
-                                        </span>
-                                    </td>
-                                    <td>{{ ticket.creator.username }}</td>
-                                    <td>
-                                        {% if ticket.assignee %}
-                                            {{ ticket.assignee.username }}
-                                        {% else %}
-                                            <span class="text-muted">Unassigned</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                                    <td>
-                                        <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <p class="text-muted text-center">No tickets found.</p>
-                {% endif %}
-            </div>
+<div class="card border-0" style="border-radius:16px;">
+    <div class="card-header d-flex align-items-center justify-content-between py-3">
+        <h5 class="mb-0 fw-semibold"><i class="fas fa-clock me-2"></i>Recent Tickets</h5>
+        <a href="{{ url_for('admin_tickets') }}" class="btn btn-sm btn-outline-light">View All</a>
+    </div>
+    <div class="card-body p-0">
+        {% if tickets %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4" style="width:60px;">#</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Created By</th>
+                        <th>Assigned To</th>
+                        <th>Created</th>
+                        <th class="pe-4 text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets[:10] %}
+                    <tr>
+                        <td class="ps-4 text-muted fw-semibold">#{{ ticket.id }}</td>
+                        <td>
+                            <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="fw-semibold text-decoration-none" style="color:#2c5f5f;">
+                                {{ ticket.title }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill" style="background:{{ '#2c5f5f' if ticket.category == 'IT' else '#28a745' }};padding:6px 10px;">{{ ticket.category }}</span>
+                        </td>
+                        <td>
+                            {% set pc = {'Critical':'#dc3545','High':'#fd7e14','Medium':'#ffc107','Low':'#28a745'} %}
+                            <span class="badge rounded-pill" style="background:{{ pc.get(ticket.priority,'#6c757d') }};padding:6px 10px;">{{ ticket.priority }}</span>
+                        </td>
+                        <td>
+                            {% set sc = {'Open':'#6c757d','Assigned':'#fd7e14','In Progress':'#4a9b9b','Resolved':'#28a745','Closed':'#343a40'} %}
+                            <span class="badge rounded-pill" style="background:{{ sc.get(ticket.status,'#6c757d') }};padding:6px 10px;">{{ ticket.status }}</span>
+                        </td>
+                        <td><small>{{ ticket.creator.username }}</small></td>
+                        <td>
+                            {% if ticket.assignee %}<small>{{ ticket.assignee.username }}</small>
+                            {% else %}<small class="text-muted">Unassigned</small>{% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ ticket.created_at.strftime('%d %b %Y') }}</small></td>
+                        <td class="pe-4 text-end">
+                            <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-primary px-3">
+                                <i class="fas fa-eye me-1"></i>View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-ticket-alt fa-2x text-muted mb-3 d-block"></i>
+            <p class="text-muted mb-0">No tickets found.</p>
+        </div>
+        {% endif %}
     </div>
 </div>
 
-<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-// Status Chart
-const statusCtx = document.getElementById('statusChart').getContext('2d');
-const statusChart = new Chart(statusCtx, {
+const chartDefaults = { responsive: true, maintainAspectRatio: true };
+
+new Chart(document.getElementById('statusChart'), {
     type: 'doughnut',
     data: {
-        labels: ['Open', 'Assigned', 'In Progress', 'Resolved', 'Closed'],
+        labels: ['Open','Assigned','In Progress','Resolved','Closed'],
         datasets: [{
             data: [
-                {{ tickets|selectattr('status', 'equalto', 'Open')|list|length }},
-                {{ tickets|selectattr('status', 'equalto', 'Assigned')|list|length }},
-                {{ tickets|selectattr('status', 'equalto', 'In Progress')|list|length }},
-                {{ tickets|selectattr('status', 'equalto', 'Resolved')|list|length }},
-                {{ tickets|selectattr('status', 'equalto', 'Closed')|list|length }}
+                {{ tickets|selectattr('status','equalto','Open')|list|length }},
+                {{ tickets|selectattr('status','equalto','Assigned')|list|length }},
+                {{ tickets|selectattr('status','equalto','In Progress')|list|length }},
+                {{ tickets|selectattr('status','equalto','Resolved')|list|length }},
+                {{ tickets|selectattr('status','equalto','Closed')|list|length }}
             ],
-            backgroundColor: [
-                '#6c757d',
-                '#ffc107',
-                '#17a2b8',
-                '#28a745',
-                '#343a40'
-            ]
+            backgroundColor: ['#6c757d','#fd7e14','#4a9b9b','#28a745','#343a40'],
+            borderWidth: 0,
         }]
     },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
-    }
+    options: { ...chartDefaults, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }, cutout: '60%' }
 });
 
-// Category Chart
-const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-const categoryChart = new Chart(categoryCtx, {
+new Chart(document.getElementById('categoryChart'), {
     type: 'bar',
     data: {
-        labels: ['IT', 'FM'],
+        labels: ['IT Support','Facilities Mgmt'],
         datasets: [{
-            label: 'Number of Tickets',
+            label: 'Tickets',
             data: [
-                {{ tickets|selectattr('category', 'equalto', 'IT')|list|length }},
-                {{ tickets|selectattr('category', 'equalto', 'FM')|list|length }}
+                {{ tickets|selectattr('category','equalto','IT')|list|length }},
+                {{ tickets|selectattr('category','equalto','FM')|list|length }}
             ],
-            backgroundColor: [
-                '#007bff',
-                '#28a745'
-            ]
+            backgroundColor: ['#2c5f5f','#28a745'],
+            borderRadius: 8,
+            borderWidth: 0,
         }]
     },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
+    options: { ...chartDefaults, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } } }
 });
 </script>
-{% endblock %} 
+{% endblock %}
