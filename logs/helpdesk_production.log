@@ -20319,3 +20319,712 @@ Traceback (most recent call last):
 jinja2.exceptions.UndefinedError: 'system_settings' is undefined
  [in D:\helpdesk.cs\app.py:322]
 2026-06-07 05:29:51,599 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:296]
+2026-06-07 05:30:19,409 INFO: Request: GET http://127.0.0.1:5000/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3150]
+2026-06-07 05:30:19,414 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3150]
+2026-06-07 05:30:19,467 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3150]
+2026-06-07 05:30:19,470 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:320]
+2026-06-07 05:30:19,470 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:321]
+2026-06-07 05:30:19,470 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 3996, in manifest
+    """View user details"""
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:322]
+2026-06-07 05:30:19,471 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:296]
+2026-06-07 05:30:19,475 ERROR: Application Error: 500 Internal Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application. [in D:\helpdesk.cs\app.py:320]
+2026-06-07 05:30:19,476 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:321]
+2026-06-07 05:30:19,476 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 3996, in manifest
+    """View user details"""
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 1455, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 869, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 752, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 727, in handle_http_exception
+    return self.ensure_sync(handler)(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "D:\helpdesk.cs\app.py", line 3118, in not_found_error
+    # Categorize tickets by status
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\templating.py", line 152, in render_template
+    return _render(app, template, context)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\templating.py", line 133, in _render
+    rv = template.render(context)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\jinja2\environment.py", line 1301, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\jinja2\environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "D:\helpdesk.cs\templates\404.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "D:\helpdesk.cs\templates\base.html", line 14, in top-level template code
+    <title>{% block title %}{{ system_settings.system_name }}{% endblock %}</title>
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\templates\404.html", line 2, in block 'title'
+    {% block title %}404 – Page Not Found – {{ system_settings.system_name }}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\jinja2\environment.py", line 485, in getattr
+    return getattr(obj, attribute)
+jinja2.exceptions.UndefinedError: 'system_settings' is undefined
+ [in D:\helpdesk.cs\app.py:322]
+2026-06-07 05:30:19,476 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:296]
+2026-06-07 05:30:19,498 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3150]
+2026-06-07 05:30:19,499 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:320]
+2026-06-07 05:30:19,499 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:321]
+2026-06-07 05:30:19,499 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4001, in service_worker
+    flash(f'Error viewing user: {str(e)}', 'error')
+       ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:322]
+2026-06-07 05:30:19,500 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:296]
+2026-06-07 05:30:19,505 ERROR: Application Error: 500 Internal Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application. [in D:\helpdesk.cs\app.py:320]
+2026-06-07 05:30:19,505 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:321]
+2026-06-07 05:30:19,505 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4001, in service_worker
+    flash(f'Error viewing user: {str(e)}', 'error')
+       ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 1455, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 869, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 752, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 727, in handle_http_exception
+    return self.ensure_sync(handler)(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "D:\helpdesk.cs\app.py", line 3118, in not_found_error
+    # Categorize tickets by status
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\templating.py", line 152, in render_template
+    return _render(app, template, context)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\templating.py", line 133, in _render
+    rv = template.render(context)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\jinja2\environment.py", line 1301, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\jinja2\environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "D:\helpdesk.cs\templates\404.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "D:\helpdesk.cs\templates\base.html", line 14, in top-level template code
+    <title>{% block title %}{{ system_settings.system_name }}{% endblock %}</title>
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\templates\404.html", line 2, in block 'title'
+    {% block title %}404 – Page Not Found – {{ system_settings.system_name }}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\jinja2\environment.py", line 485, in getattr
+    return getattr(obj, attribute)
+jinja2.exceptions.UndefinedError: 'system_settings' is undefined
+ [in D:\helpdesk.cs\app.py:322]
+2026-06-07 05:30:19,506 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:296]
+2026-06-07 05:30:23,610 INFO: Request: GET http://127.0.0.1:5000/admin/database_management - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3150]
+2026-06-07 05:30:23,672 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3150]
+2026-06-07 05:30:23,672 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3150]
+2026-06-07 05:30:23,674 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:320]
+2026-06-07 05:30:23,674 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:320]
+2026-06-07 05:30:23,674 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:321]
+2026-06-07 05:30:23,674 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:321]
+2026-06-07 05:30:23,675 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 3996, in manifest
+    """View user details"""
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:322]
+2026-06-07 05:30:23,675 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4001, in service_worker
+    flash(f'Error viewing user: {str(e)}', 'error')
+       ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:322]
+2026-06-07 05:30:23,676 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:296]
+2026-06-07 05:30:23,676 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:296]
+2026-06-07 05:30:23,686 ERROR: Application Error: 500 Internal Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application. [in D:\helpdesk.cs\app.py:320]
+2026-06-07 05:30:23,688 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:321]
+2026-06-07 05:30:23,688 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4001, in service_worker
+    flash(f'Error viewing user: {str(e)}', 'error')
+       ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 1455, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 869, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 752, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 727, in handle_http_exception
+    return self.ensure_sync(handler)(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "D:\helpdesk.cs\app.py", line 3118, in not_found_error
+    # Categorize tickets by status
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\templating.py", line 152, in render_template
+    return _render(app, template, context)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\templating.py", line 133, in _render
+    rv = template.render(context)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\jinja2\environment.py", line 1301, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\jinja2\environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "D:\helpdesk.cs\templates\404.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "D:\helpdesk.cs\templates\base.html", line 14, in top-level template code
+    <title>{% block title %}{{ system_settings.system_name }}{% endblock %}</title>
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\templates\404.html", line 2, in block 'title'
+    {% block title %}404 – Page Not Found – {{ system_settings.system_name }}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\jinja2\environment.py", line 485, in getattr
+    return getattr(obj, attribute)
+jinja2.exceptions.UndefinedError: 'system_settings' is undefined
+ [in D:\helpdesk.cs\app.py:322]
+2026-06-07 05:30:23,689 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:296]
+2026-06-07 05:30:23,693 ERROR: Application Error: 500 Internal Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application. [in D:\helpdesk.cs\app.py:320]
+2026-06-07 05:30:23,693 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:321]
+2026-06-07 05:30:23,693 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 3996, in manifest
+    """View user details"""
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 1455, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 869, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 752, in handle_user_exception
+    return self.handle_http_exception(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 727, in handle_http_exception
+    return self.ensure_sync(handler)(e)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "D:\helpdesk.cs\app.py", line 3118, in not_found_error
+    # Categorize tickets by status
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\templating.py", line 152, in render_template
+    return _render(app, template, context)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\templating.py", line 133, in _render
+    rv = template.render(context)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\jinja2\environment.py", line 1301, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\jinja2\environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "D:\helpdesk.cs\templates\404.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "D:\helpdesk.cs\templates\base.html", line 14, in top-level template code
+    <title>{% block title %}{{ system_settings.system_name }}{% endblock %}</title>
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\templates\404.html", line 2, in block 'title'
+    {% block title %}404 – Page Not Found – {{ system_settings.system_name }}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\jinja2\environment.py", line 485, in getattr
+    return getattr(obj, attribute)
+jinja2.exceptions.UndefinedError: 'system_settings' is undefined
+ [in D:\helpdesk.cs\app.py:322]
+2026-06-07 05:30:23,694 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:296]
+2026-06-07 05:39:46,404 INFO: Request: GET http://127.0.0.1:5000/ - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:39:47,834 INFO: Request: GET http://127.0.0.1:5000/login - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:39:54,124 INFO: Request: POST http://127.0.0.1:5000/login - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:39:59,398 INFO: Request: GET http://127.0.0.1:5000/admin/settings - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:00,848 INFO: Request: GET http://127.0.0.1:5000/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:00,851 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:07,890 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:07,890 ERROR: URL: http://127.0.0.1:5000/nonexistent, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:07,890 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 841, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 450, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\ctx.py", line 353, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:07,892 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:07,894 WARNING: Response: 404 for GET http://127.0.0.1:5000/nonexistent [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:07,946 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:08,002 INFO: Request: GET http://127.0.0.1:5000/ticket/create - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:16,071 INFO: Request: GET http://127.0.0.1:5000/ - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:16,077 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:16,314 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:16,315 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:16,343 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:16,343 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:16,343 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:16,343 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:16,343 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4081, in service_worker
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:16,343 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4076, in manifest
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:16,344 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:16,345 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/service-worker.js [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:16,346 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:16,347 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/manifest.json [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:20,115 INFO: Request: GET http://127.0.0.1:5000/user/ticket_summary - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:20,231 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:20,232 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:20,232 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:20,232 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4081, in service_worker
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:20,233 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:20,234 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/service-worker.js [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:20,237 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:20,239 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:20,240 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:20,240 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4076, in manifest
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:20,240 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:20,241 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/manifest.json [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:21,944 INFO: Request: GET http://127.0.0.1:5000/admin/summary_reports - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:22,096 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:22,098 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:22,098 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:22,098 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4081, in service_worker
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:22,099 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:22,100 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/service-worker.js [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:22,111 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:22,112 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:22,112 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:22,112 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4076, in manifest
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:22,113 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:22,114 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/manifest.json [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:23,956 INFO: Request: GET http://127.0.0.1:5000/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:23,960 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:24,020 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:24,021 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:24,021 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:24,022 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4081, in service_worker
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:24,023 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:24,023 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:24,024 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/service-worker.js [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:24,026 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:24,026 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:24,026 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4076, in manifest
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:24,027 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:24,029 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/manifest.json [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:26,616 INFO: Request: GET http://127.0.0.1:5000/admin/settings - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:26,667 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:26,668 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:26,668 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:26,668 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4081, in service_worker
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:26,669 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:26,669 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/service-worker.js [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:26,677 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:26,678 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:26,679 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:26,679 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4076, in manifest
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:26,680 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:26,680 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/manifest.json [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:35,303 INFO: Request: POST http://127.0.0.1:5000/admin/update_system_settings - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:35,314 INFO: Request: GET http://127.0.0.1:5000/admin/settings - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:35,362 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:35,362 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:35,365 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:35,365 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:35,366 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:35,366 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:35,366 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4081, in service_worker
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:35,366 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4076, in manifest
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:35,367 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:35,367 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:35,368 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/manifest.json [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:35,369 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/service-worker.js [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:41,918 INFO: Request: GET http://127.0.0.1:5000/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:41,923 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:41,988 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:41,990 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:41,990 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:41,990 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4081, in service_worker
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:41,991 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:41,993 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/service-worker.js [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:40:41,994 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:40:41,997 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:40:41,997 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:40:41,997 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4076, in manifest
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:40:41,998 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:40:41,999 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/manifest.json [in D:\helpdesk.cs\app.py:3229]
