@@ -337,6 +337,8 @@ db_manager = DatabaseManager()
 app.config['SQLALCHEMY_DATABASE_URI'] = db_manager.get_current_db_uri()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config.setdefault('MAX_CONTENT_LENGTH', 16 * 1024 * 1024)  # 16 MB upload limit
+app.config.setdefault('SESSION_COOKIE_SAMESITE', 'Lax')
+app.config.setdefault('SESSION_COOKIE_HTTPONLY', True)
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
