@@ -19,7 +19,7 @@ from importers import (
 from models import (
     School, User, Ticket, ROLE_ADMIN, ROLE_SUPER_ADMIN, AGENT_ROLES, HEX_COLOR_RE, utc_now,
 )
-from tenancy import all_schools, super_admin_required, unique_slug, slugify
+from tenancy import all_schools, super_admin_required, unique_slug
 from user_service import (
     EMAIL_RE, build_user, generate_password, make_unique_username, normalize_email, global_user_exists,
 )
@@ -66,10 +66,6 @@ def save_logo(file_storage, school):
     with open(os.path.join(_logo_folder(), os.path.basename(filename)), 'wb') as fh:
         fh.write(data)
     return filename, None
-
-
-def logo_url_name(school):
-    return school.logo_filename
 
 
 def _school_form_data():

@@ -7,7 +7,6 @@ from extensions import db
 from models import (
     User, School, ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_USER, AGENT_ROLES,
 )
-from tenancy import slugify
 
 MIN_PASSWORD_LENGTH = 8
 EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')

@@ -51500,3 +51500,357 @@ RecursionError: maximum recursion depth exceeded
 2026-10-14 09:45:21,311 INFO: Loaded 1 tickets for statuses ['Open'] [in D:\helpdesk.cs\app.py:1608]
 2026-10-14 09:45:21,316 INFO: Loaded 9 tickets for statuses ['Assigned', 'In Progress'] [in D:\helpdesk.cs\app.py:1608]
 2026-10-14 09:45:43,540 WARNING: First run: super admin "admin" created (password printed to the console once). [in D:\helpdesk.cs\app.py:380]
+2026-10-14 09:47:02,285 WARNING: First run: super admin "admin" created (password printed to the console once). [in D:\helpdesk.cs\app.py:391]
+2026-10-14 09:47:10,669 INFO: Round-robin assignment for IT: Found 1 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:10,670 INFO: First IT ticket: Assigning to it_a [in D:\helpdesk.cs\app.py:797]
+2026-10-14 09:47:10,695 INFO: Round-robin assignment for IT: Found 1 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:10,696 INFO: First IT ticket: Assigning to it_b [in D:\helpdesk.cs\app.py:797]
+2026-10-14 09:47:11,175 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1409]
+2026-10-14 09:47:11,176 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1410]
+2026-10-14 09:47:11,176 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1411]
+2026-10-14 09:47:11,176 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1412]
+2026-10-14 09:47:11,180 INFO: Total tickets before filter: 1 [in D:\helpdesk.cs\app.py:1421]
+2026-10-14 09:47:11,184 INFO: Final filtered ticket count: 1 [in D:\helpdesk.cs\app.py:1508]
+2026-10-14 09:47:11,192 INFO: Retrieved 1 tickets after filtering [in D:\helpdesk.cs\app.py:1535]
+2026-10-14 09:47:11,256 INFO: Search filters - query: "", category: "", status: "", priority: "", assigned_to: "" [in D:\helpdesk.cs\app.py:2522]
+2026-10-14 09:47:11,257 INFO: Executing query... [in D:\helpdesk.cs\app.py:2587]
+2026-10-14 09:47:11,258 INFO: Retrieved 1 tickets [in D:\helpdesk.cs\app.py:2600]
+2026-10-14 09:47:11,259 INFO: Rendering template with 1 tickets, 3 agents [in D:\helpdesk.cs\app.py:2630]
+2026-10-14 09:47:12,674 INFO: Round-robin assignment for IT: Found 2 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:12,675 INFO: Round-robin IT: Last assigned to it_a, next assigned to it_a2 [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:47:12,694 INFO: Round-robin assignment for IT: Found 2 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:12,695 INFO: Round-robin IT: Last assigned to it_a2, next assigned to it_a [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:47:12,715 INFO: Round-robin assignment for IT: Found 2 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:12,716 INFO: Round-robin IT: Last assigned to it_a, next assigned to it_a2 [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:47:12,736 INFO: Round-robin assignment for IT: Found 2 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:12,737 INFO: Round-robin IT: Last assigned to it_a2, next assigned to it_a [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:47:12,902 INFO: Round-robin assignment for FM: Found 1 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:12,903 INFO: First FM ticket: Assigning to fm_a [in D:\helpdesk.cs\app.py:797]
+2026-10-14 09:47:12,922 INFO: Round-robin assignment for HSE: Found 1 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:12,922 INFO: First HSE ticket: Assigning to hse_a [in D:\helpdesk.cs\app.py:797]
+2026-10-14 09:47:13,090 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1409]
+2026-10-14 09:47:13,090 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1410]
+2026-10-14 09:47:13,090 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1411]
+2026-10-14 09:47:13,090 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1412]
+2026-10-14 09:47:13,091 INFO: Total tickets before filter: 1 [in D:\helpdesk.cs\app.py:1421]
+2026-10-14 09:47:13,092 INFO: Final filtered ticket count: 1 [in D:\helpdesk.cs\app.py:1508]
+2026-10-14 09:47:13,092 INFO: Retrieved 1 tickets after filtering [in D:\helpdesk.cs\app.py:1535]
+2026-10-14 09:47:20,809 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1409]
+2026-10-14 09:47:20,809 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1410]
+2026-10-14 09:47:20,809 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1411]
+2026-10-14 09:47:20,809 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1412]
+2026-10-14 09:47:20,810 INFO: Total tickets before filter: 1 [in D:\helpdesk.cs\app.py:1421]
+2026-10-14 09:47:20,811 INFO: Final filtered ticket count: 1 [in D:\helpdesk.cs\app.py:1508]
+2026-10-14 09:47:20,812 INFO: Retrieved 1 tickets after filtering [in D:\helpdesk.cs\app.py:1535]
+2026-10-14 09:47:20,833 INFO: Round-robin assignment for IT: Found 4 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:20,834 INFO: Round-robin IT: Last assigned to it_a, next assigned to it_a2 [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:47:21,756 WARNING: CSRF failure on /ticket/create: The CSRF token is missing. [in D:\helpdesk.cs\app.py:2789]
+2026-10-14 09:47:21,769 INFO: Round-robin assignment for IT: Found 4 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:21,770 INFO: Round-robin IT: Last assigned to it_a, next assigned to it_a2 [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:47:22,236 INFO: Round-robin assignment for IT: Found 4 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:22,237 INFO: Round-robin IT: Last assigned to it_a2, next assigned to p2user [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:47:22,240 INFO: Round-robin assignment for FM: Found 3 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:22,241 INFO: Round-robin FM: Last assigned to fm_a, next assigned to p4user [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:47:22,242 INFO: Round-robin assignment for HSE: Found 2 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:22,243 INFO: Round-robin HSE: Last assigned to hse_a, next assigned to p3user [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:47:22,354 INFO: Search filters - query: "", category: "", status: "", priority: "", assigned_to: "" [in D:\helpdesk.cs\app.py:2522]
+2026-10-14 09:47:22,355 INFO: Executing query... [in D:\helpdesk.cs\app.py:2587]
+2026-10-14 09:47:22,356 INFO: Retrieved 13 tickets [in D:\helpdesk.cs\app.py:2600]
+2026-10-14 09:47:22,356 INFO: Rendering template with 13 tickets, 9 agents [in D:\helpdesk.cs\app.py:2630]
+2026-10-14 09:47:23,478 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1409]
+2026-10-14 09:47:23,478 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1410]
+2026-10-14 09:47:23,478 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1411]
+2026-10-14 09:47:23,478 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1412]
+2026-10-14 09:47:23,479 INFO: Total tickets before filter: 13 [in D:\helpdesk.cs\app.py:1421]
+2026-10-14 09:47:23,479 INFO: Final filtered ticket count: 13 [in D:\helpdesk.cs\app.py:1508]
+2026-10-14 09:47:23,480 INFO: Retrieved 13 tickets after filtering [in D:\helpdesk.cs\app.py:1535]
+2026-10-14 09:47:23,492 INFO: Loaded 3 tickets for statuses ['Resolved', 'Closed'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:47:23,510 INFO: Loaded 1 tickets for statuses ['Open'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:47:23,515 INFO: Loaded 9 tickets for statuses ['Assigned', 'In Progress'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:47:23,748 INFO: Round-robin assignment for IT: Found 4 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:23,749 INFO: Round-robin IT: Last assigned to it_a2, next assigned to p2user [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:47:23,751 INFO: Round-robin assignment for FM: Found 3 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:23,751 INFO: Round-robin FM: Last assigned to fm_a, next assigned to p4user [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:47:23,753 INFO: Round-robin assignment for HSE: Found 2 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:47:23,754 INFO: Round-robin HSE: Last assigned to hse_a, next assigned to p3user [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:47:23,879 INFO: Search filters - query: "", category: "", status: "", priority: "", assigned_to: "" [in D:\helpdesk.cs\app.py:2522]
+2026-10-14 09:47:23,879 INFO: Executing query... [in D:\helpdesk.cs\app.py:2587]
+2026-10-14 09:47:23,880 INFO: Retrieved 13 tickets [in D:\helpdesk.cs\app.py:2600]
+2026-10-14 09:47:23,881 INFO: Rendering template with 13 tickets, 9 agents [in D:\helpdesk.cs\app.py:2630]
+2026-10-14 09:47:23,963 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1409]
+2026-10-14 09:47:23,964 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1410]
+2026-10-14 09:47:23,964 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1411]
+2026-10-14 09:47:23,964 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1412]
+2026-10-14 09:47:23,965 INFO: Total tickets before filter: 13 [in D:\helpdesk.cs\app.py:1421]
+2026-10-14 09:47:23,965 INFO: Final filtered ticket count: 13 [in D:\helpdesk.cs\app.py:1508]
+2026-10-14 09:47:23,966 INFO: Retrieved 13 tickets after filtering [in D:\helpdesk.cs\app.py:1535]
+2026-10-14 09:47:23,974 INFO: Loaded 3 tickets for statuses ['Resolved', 'Closed'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:47:23,980 INFO: Loaded 1 tickets for statuses ['Open'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:47:23,986 INFO: Loaded 9 tickets for statuses ['Assigned', 'In Progress'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:47:24,384 INFO: Search filters - query: "", category: "", status: "", priority: "", assigned_to: "" [in D:\helpdesk.cs\app.py:2522]
+2026-10-14 09:47:24,384 INFO: Executing query... [in D:\helpdesk.cs\app.py:2587]
+2026-10-14 09:47:24,385 INFO: Retrieved 13 tickets [in D:\helpdesk.cs\app.py:2600]
+2026-10-14 09:47:24,386 INFO: Rendering template with 13 tickets, 9 agents [in D:\helpdesk.cs\app.py:2630]
+2026-10-14 09:47:24,455 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1409]
+2026-10-14 09:47:24,455 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1410]
+2026-10-14 09:47:24,455 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1411]
+2026-10-14 09:47:24,455 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1412]
+2026-10-14 09:47:24,456 INFO: Total tickets before filter: 13 [in D:\helpdesk.cs\app.py:1421]
+2026-10-14 09:47:24,457 INFO: Final filtered ticket count: 13 [in D:\helpdesk.cs\app.py:1508]
+2026-10-14 09:47:24,458 INFO: Retrieved 13 tickets after filtering [in D:\helpdesk.cs\app.py:1535]
+2026-10-14 09:47:24,465 INFO: Loaded 3 tickets for statuses ['Resolved', 'Closed'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:47:24,470 INFO: Loaded 1 tickets for statuses ['Open'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:47:24,475 INFO: Loaded 9 tickets for statuses ['Assigned', 'In Progress'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:47:32,471 WARNING: First run: super admin "admin" created (password printed to the console once). [in D:\helpdesk.cs\app.py:391]
+2026-10-14 09:47:32,475 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:32,477 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:32,483 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:32,522 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:45,661 WARNING: Schema migration raced with another worker, retrying [in D:\helpdesk.cs\app.py:373]
+Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: table users already exists
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\helpdesk.cs\app.py", line 368, in _bootstrap_platform
+    run_migrations(app)
+    ~~~~~~~~~~~~~~^^^^^
+  File "D:\helpdesk.cs\tenancy.py", line 317, in run_migrations
+    db.create_all()
+    ~~~~~~~~~~~~~^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask_sqlalchemy\extension.py", line 900, in create_all
+    self._call_for_binds(bind_key, "create_all")
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask_sqlalchemy\extension.py", line 881, in _call_for_binds
+    getattr(metadata, op_name)(bind=engine)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\sql\schema.py", line 5928, in create_all
+    bind._run_ddl_visitor(
+    ~~~~~~~~~~~~~~~~~~~~~^
+        ddl.SchemaGenerator, self, checkfirst=checkfirst, tables=tables
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 3252, in _run_ddl_visitor
+    conn._run_ddl_visitor(visitorcallable, element, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 2459, in _run_ddl_visitor
+    ).traverse_single(element)
+      ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\sql\visitors.py", line 661, in traverse_single
+    return meth(obj, **kw)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\sql\ddl.py", line 984, in visit_metadata
+    self.traverse_single(
+    ~~~~~~~~~~~~~~~~~~~~^
+        table,
+        ^^^^^^
+    ...<2 lines>...
+        _is_metadata_operation=True,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\sql\visitors.py", line 661, in traverse_single
+    return meth(obj, **kw)
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\sql\ddl.py", line 1022, in visit_table
+    )._invoke_with(self.connection)
+      ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\sql\ddl.py", line 321, in _invoke_with
+    return bind.execute(self)
+           ~~~~~~~~~~~~^^^^^^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\sql\ddl.py", line 187, in _execute_on_connection
+    return connection._execute_ddl(
+           ~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 1530, in _execute_ddl
+    ret = self._execute_context(
+        dialect,
+    ...<4 lines>...
+        compiled,
+    )
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) table users already exists
+[SQL: 
+CREATE TABLE users (
+	id INTEGER NOT NULL, 
+	username VARCHAR(80) NOT NULL, 
+	email VARCHAR(120) NOT NULL, 
+	password_hash VARCHAR(255) NOT NULL, 
+	role VARCHAR(20), 
+	department TEXT, 
+	is_active BOOLEAN, 
+	created_at DATETIME, 
+	school_id INTEGER, 
+	full_name VARCHAR(120), 
+	must_change_password BOOLEAN, 
+	PRIMARY KEY (id), 
+	UNIQUE (username), 
+	UNIQUE (email), 
+	FOREIGN KEY(school_id) REFERENCES schools (id)
+)
+
+]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-10-14 09:47:45,876 WARNING: First run: super admin "admin" created (password printed to the console once). [in D:\helpdesk.cs\app.py:391]
+2026-10-14 09:47:45,892 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:45,904 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:45,927 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:45,943 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:48,837 WARNING: First run: super admin "admin" created (password printed to the console once). [in D:\helpdesk.cs\app.py:391]
+2026-10-14 09:47:48,845 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:48,860 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:48,874 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:48,882 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:48,891 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:51,787 WARNING: First run: super admin "admin" created (password printed to the console once). [in D:\helpdesk.cs\app.py:391]
+2026-10-14 09:47:51,792 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:51,822 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:51,837 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:51,838 INFO: Email templates were seeded by another worker [in D:\helpdesk.cs\app.py:3059]
+2026-10-14 09:47:51,853 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:47:51,855 INFO: Bootstrap defaults were created by another worker [in D:\helpdesk.cs\app.py:395]
+2026-10-14 09:48:25,000 WARNING: First run: super admin "admin" created (password printed to the console once). [in D:\helpdesk.cs\app.py:391]
+2026-10-14 09:48:32,874 INFO: Round-robin assignment for IT: Found 1 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:32,876 INFO: First IT ticket: Assigning to it_a [in D:\helpdesk.cs\app.py:797]
+2026-10-14 09:48:32,901 INFO: Round-robin assignment for IT: Found 1 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:32,902 INFO: First IT ticket: Assigning to it_b [in D:\helpdesk.cs\app.py:797]
+2026-10-14 09:48:33,324 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1409]
+2026-10-14 09:48:33,324 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1410]
+2026-10-14 09:48:33,324 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1411]
+2026-10-14 09:48:33,324 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1412]
+2026-10-14 09:48:33,327 INFO: Total tickets before filter: 1 [in D:\helpdesk.cs\app.py:1421]
+2026-10-14 09:48:33,330 INFO: Final filtered ticket count: 1 [in D:\helpdesk.cs\app.py:1508]
+2026-10-14 09:48:33,336 INFO: Retrieved 1 tickets after filtering [in D:\helpdesk.cs\app.py:1535]
+2026-10-14 09:48:33,385 INFO: Search filters - query: "", category: "", status: "", priority: "", assigned_to: "" [in D:\helpdesk.cs\app.py:2522]
+2026-10-14 09:48:33,386 INFO: Executing query... [in D:\helpdesk.cs\app.py:2587]
+2026-10-14 09:48:33,386 INFO: Retrieved 1 tickets [in D:\helpdesk.cs\app.py:2600]
+2026-10-14 09:48:33,387 INFO: Rendering template with 1 tickets, 3 agents [in D:\helpdesk.cs\app.py:2630]
+2026-10-14 09:48:34,657 INFO: Round-robin assignment for IT: Found 2 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:34,658 INFO: Round-robin IT: Last assigned to it_a, next assigned to it_a2 [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:48:34,678 INFO: Round-robin assignment for IT: Found 2 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:34,679 INFO: Round-robin IT: Last assigned to it_a2, next assigned to it_a [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:48:34,697 INFO: Round-robin assignment for IT: Found 2 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:34,698 INFO: Round-robin IT: Last assigned to it_a, next assigned to it_a2 [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:48:34,718 INFO: Round-robin assignment for IT: Found 2 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:34,719 INFO: Round-robin IT: Last assigned to it_a2, next assigned to it_a [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:48:34,858 INFO: Round-robin assignment for FM: Found 1 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:34,859 INFO: First FM ticket: Assigning to fm_a [in D:\helpdesk.cs\app.py:797]
+2026-10-14 09:48:34,878 INFO: Round-robin assignment for HSE: Found 1 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:34,879 INFO: First HSE ticket: Assigning to hse_a [in D:\helpdesk.cs\app.py:797]
+2026-10-14 09:48:35,049 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1409]
+2026-10-14 09:48:35,050 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1410]
+2026-10-14 09:48:35,050 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1411]
+2026-10-14 09:48:35,050 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1412]
+2026-10-14 09:48:35,050 INFO: Total tickets before filter: 1 [in D:\helpdesk.cs\app.py:1421]
+2026-10-14 09:48:35,051 INFO: Final filtered ticket count: 1 [in D:\helpdesk.cs\app.py:1508]
+2026-10-14 09:48:35,052 INFO: Retrieved 1 tickets after filtering [in D:\helpdesk.cs\app.py:1535]
+2026-10-14 09:48:42,771 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1409]
+2026-10-14 09:48:42,771 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1410]
+2026-10-14 09:48:42,771 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1411]
+2026-10-14 09:48:42,771 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1412]
+2026-10-14 09:48:42,772 INFO: Total tickets before filter: 1 [in D:\helpdesk.cs\app.py:1421]
+2026-10-14 09:48:42,773 INFO: Final filtered ticket count: 1 [in D:\helpdesk.cs\app.py:1508]
+2026-10-14 09:48:42,774 INFO: Retrieved 1 tickets after filtering [in D:\helpdesk.cs\app.py:1535]
+2026-10-14 09:48:42,792 INFO: Round-robin assignment for IT: Found 4 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:42,793 INFO: Round-robin IT: Last assigned to it_a, next assigned to it_a2 [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:48:43,678 WARNING: CSRF failure on /ticket/create: The CSRF token is missing. [in D:\helpdesk.cs\app.py:2789]
+2026-10-14 09:48:43,690 INFO: Round-robin assignment for IT: Found 4 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:43,690 INFO: Round-robin IT: Last assigned to it_a, next assigned to it_a2 [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:48:44,109 INFO: Round-robin assignment for IT: Found 4 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:44,110 INFO: Round-robin IT: Last assigned to it_a2, next assigned to p2user [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:48:44,114 INFO: Round-robin assignment for FM: Found 3 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:44,115 INFO: Round-robin FM: Last assigned to fm_a, next assigned to p4user [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:48:44,116 INFO: Round-robin assignment for HSE: Found 2 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:44,117 INFO: Round-robin HSE: Last assigned to hse_a, next assigned to p3user [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:48:44,235 INFO: Search filters - query: "", category: "", status: "", priority: "", assigned_to: "" [in D:\helpdesk.cs\app.py:2522]
+2026-10-14 09:48:44,235 INFO: Executing query... [in D:\helpdesk.cs\app.py:2587]
+2026-10-14 09:48:44,236 INFO: Retrieved 13 tickets [in D:\helpdesk.cs\app.py:2600]
+2026-10-14 09:48:44,237 INFO: Rendering template with 13 tickets, 9 agents [in D:\helpdesk.cs\app.py:2630]
+2026-10-14 09:48:45,355 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1409]
+2026-10-14 09:48:45,355 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1410]
+2026-10-14 09:48:45,355 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1411]
+2026-10-14 09:48:45,355 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1412]
+2026-10-14 09:48:45,356 INFO: Total tickets before filter: 13 [in D:\helpdesk.cs\app.py:1421]
+2026-10-14 09:48:45,357 INFO: Final filtered ticket count: 13 [in D:\helpdesk.cs\app.py:1508]
+2026-10-14 09:48:45,358 INFO: Retrieved 13 tickets after filtering [in D:\helpdesk.cs\app.py:1535]
+2026-10-14 09:48:45,369 INFO: Loaded 3 tickets for statuses ['Resolved', 'Closed'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:48:45,386 INFO: Loaded 1 tickets for statuses ['Open'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:48:45,391 INFO: Loaded 9 tickets for statuses ['Assigned', 'In Progress'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:48:45,637 INFO: Round-robin assignment for IT: Found 4 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:45,638 INFO: Round-robin IT: Last assigned to it_a2, next assigned to p2user [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:48:45,639 INFO: Round-robin assignment for FM: Found 3 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:45,640 INFO: Round-robin FM: Last assigned to fm_a, next assigned to p4user [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:48:45,641 INFO: Round-robin assignment for HSE: Found 2 active agents [in D:\helpdesk.cs\app.py:787]
+2026-10-14 09:48:45,642 INFO: Round-robin HSE: Last assigned to hse_a, next assigned to p3user [in D:\helpdesk.cs\app.py:819]
+2026-10-14 09:48:45,761 INFO: Search filters - query: "", category: "", status: "", priority: "", assigned_to: "" [in D:\helpdesk.cs\app.py:2522]
+2026-10-14 09:48:45,761 INFO: Executing query... [in D:\helpdesk.cs\app.py:2587]
+2026-10-14 09:48:45,762 INFO: Retrieved 13 tickets [in D:\helpdesk.cs\app.py:2600]
+2026-10-14 09:48:45,763 INFO: Rendering template with 13 tickets, 9 agents [in D:\helpdesk.cs\app.py:2630]
+2026-10-14 09:48:45,838 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1409]
+2026-10-14 09:48:45,838 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1410]
+2026-10-14 09:48:45,838 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1411]
+2026-10-14 09:48:45,839 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1412]
+2026-10-14 09:48:45,839 INFO: Total tickets before filter: 13 [in D:\helpdesk.cs\app.py:1421]
+2026-10-14 09:48:45,840 INFO: Final filtered ticket count: 13 [in D:\helpdesk.cs\app.py:1508]
+2026-10-14 09:48:45,841 INFO: Retrieved 13 tickets after filtering [in D:\helpdesk.cs\app.py:1535]
+2026-10-14 09:48:45,849 INFO: Loaded 3 tickets for statuses ['Resolved', 'Closed'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:48:45,855 INFO: Loaded 1 tickets for statuses ['Open'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:48:45,862 INFO: Loaded 9 tickets for statuses ['Assigned', 'In Progress'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:48:46,257 INFO: Search filters - query: "", category: "", status: "", priority: "", assigned_to: "" [in D:\helpdesk.cs\app.py:2522]
+2026-10-14 09:48:46,258 INFO: Executing query... [in D:\helpdesk.cs\app.py:2587]
+2026-10-14 09:48:46,259 INFO: Retrieved 13 tickets [in D:\helpdesk.cs\app.py:2600]
+2026-10-14 09:48:46,260 INFO: Rendering template with 13 tickets, 9 agents [in D:\helpdesk.cs\app.py:2630]
+2026-10-14 09:48:46,330 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1409]
+2026-10-14 09:48:46,330 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1410]
+2026-10-14 09:48:46,330 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1411]
+2026-10-14 09:48:46,330 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1412]
+2026-10-14 09:48:46,331 INFO: Total tickets before filter: 13 [in D:\helpdesk.cs\app.py:1421]
+2026-10-14 09:48:46,331 INFO: Final filtered ticket count: 13 [in D:\helpdesk.cs\app.py:1508]
+2026-10-14 09:48:46,332 INFO: Retrieved 13 tickets after filtering [in D:\helpdesk.cs\app.py:1535]
+2026-10-14 09:48:46,339 INFO: Loaded 3 tickets for statuses ['Resolved', 'Closed'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:48:46,344 INFO: Loaded 1 tickets for statuses ['Open'] [in D:\helpdesk.cs\app.py:1624]
+2026-10-14 09:48:46,349 INFO: Loaded 9 tickets for statuses ['Assigned', 'In Progress'] [in D:\helpdesk.cs\app.py:1624]

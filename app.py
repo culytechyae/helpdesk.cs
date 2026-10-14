@@ -360,25 +360,39 @@ def inject_system_settings():
 
 
 def _bootstrap_platform():
-    """Create/upgrade schema, default settings and (first run only) the super admin."""
-    run_migrations(app)
+    """Create/upgrade schema, default settings and (first run only) the super admin.
+
+    Safe to run concurrently from several workers: losers of a race roll back and carry on."""
+    for attempt in (1, 2, 3):
+        try:
+            run_migrations(app)
+            break
+        except Exception:
+            if attempt == 3:
+                raise
+            logger.warning('Schema migration raced with another worker, retrying', exc_info=True)
+            time.sleep(0.5 * attempt)
     with app.app_context():
         os.makedirs(LOGO_UPLOAD_FOLDER, exist_ok=True)
         os.makedirs(SCHOOL_LOGO_FOLDER, exist_ok=True)
-        if not SystemSettings.query.first():
-            db.session.add(SystemSettings(system_name='Al Qeyam Helpdesk'))
-            db.session.commit()
-        if not User.query.execution_options(tenant_bypass=True).first():
-            import secrets
-            password = os.environ.get('INITIAL_ADMIN_PASSWORD') or secrets.token_urlsafe(12)
-            admin = User(username='admin', email=os.environ.get('INITIAL_ADMIN_EMAIL', 'admin@helpdesk.local'),
-                         role=ROLE_SUPER_ADMIN, is_active=True,
-                         must_change_password=not os.environ.get('INITIAL_ADMIN_PASSWORD'))
-            admin.set_password(password)
-            db.session.add(admin)
-            db.session.commit()
-            logger.warning('First run: super admin "admin" created (password printed to the console once).')
-            print(f'*** First run: super admin created -> username: admin  password: {password}')
+        try:
+            if not SystemSettings.query.first():
+                db.session.add(SystemSettings(system_name='Al Qeyam Helpdesk'))
+                db.session.commit()
+            if not User.query.execution_options(tenant_bypass=True).first():
+                import secrets
+                password = os.environ.get('INITIAL_ADMIN_PASSWORD') or secrets.token_urlsafe(12)
+                admin = User(username='admin', email=os.environ.get('INITIAL_ADMIN_EMAIL', 'admin@helpdesk.local'),
+                             role=ROLE_SUPER_ADMIN, is_active=True,
+                             must_change_password=not os.environ.get('INITIAL_ADMIN_PASSWORD'))
+                admin.set_password(password)
+                db.session.add(admin)
+                db.session.commit()
+                logger.warning('First run: super admin "admin" created (password printed to the console once).')
+                print(f'*** First run: super admin created -> username: admin  password: {password}')
+        except Exception:
+            db.session.rollback()   # another worker created it first
+            logger.info('Bootstrap defaults were created by another worker')
 
 
 _bootstrap_platform()
@@ -453,6 +467,8 @@ def send_templated_email(to_email, template_type, **kwargs):
     
     school = active_school()
     kwargs.setdefault('school_name', school.system_name if school else 'Helpdesk')
+    if school:
+        body = body.replace('Al Qeyam Helpdesk Team', f'{school.system_name} Team')
     for key, value in kwargs.items():
         placeholder = f"{{{key}}}"
         subject = subject.replace(placeholder, str(value))
@@ -3028,18 +3044,19 @@ def _seed_email_templates():
             }
         ]
         
-        for template_data in default_templates:
-            existing_template = EmailTemplate.query.filter_by(template_type=template_data['template_type']).first()
-            if not existing_template:
-                template = EmailTemplate(
-                    template_type=template_data['template_type'],
-                    subject=template_data['subject'],
-                    body=template_data['body']
-                )
-                db.session.add(template)
-        
-        db.session.commit()
-
+        try:
+            for template_data in default_templates:
+                existing_template = EmailTemplate.query.filter_by(template_type=template_data['template_type']).first()
+                if not existing_template:
+                    db.session.add(EmailTemplate(
+                        template_type=template_data['template_type'],
+                        subject=template_data['subject'],
+                        body=template_data['body']))
+                    db.session.flush()
+            db.session.commit()
+        except Exception:
+            db.session.rollback()    # another worker seeded them first
+            logger.info('Email templates were seeded by another worker')
 
 _seed_email_templates()
 
