@@ -377,7 +377,7 @@ def _bootstrap_platform():
             admin.set_password(password)
             db.session.add(admin)
             db.session.commit()
-            logger.warning('First run: super admin "admin" created. Initial password: %s', password)
+            logger.warning('First run: super admin "admin" created (password printed to the console once).')
             print(f'*** First run: super admin created -> username: admin  password: {password}')
 
 
@@ -1859,7 +1859,8 @@ def admin_database_management():
 @app.route('/admin/backup_restore')
 @require_module_access('backup_restore')
 def admin_backup_restore():
-    return render_template('admin_backup_restore.html')
+    return render_template('admin_backup_restore.html',
+                           is_sqlite=app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite'))
 
 @app.route('/admin/round_robin_status')
 @require_module_access('agent_management')
@@ -3219,13 +3220,29 @@ def create_system_backup():
 @app.route('/admin/create_database_backup', methods=['POST'])
 @require_module_access('backup_restore')
 def create_database_backup():
-    """Create database backup"""
-    try:
-        # Placeholder implementation
-        flash('Database backup feature is not implemented yet.', 'info')
+    """Consistent online backup of a SQLite database (PostgreSQL: use pg_dump)."""
+    uri = app.config['SQLALCHEMY_DATABASE_URI']
+    if not uri.startswith('sqlite'):
+        flash('Database backups for PostgreSQL are done with pg_dump on the database server.', 'info')
         return redirect(url_for('admin_backup_restore'))
-    except Exception as e:
-        flash(f'Error creating database backup: {str(e)}', 'error')
+    try:
+        path = db.engine.url.database
+        if not os.path.isabs(path):
+            candidate = os.path.join(app.instance_path, path)
+            path = candidate if os.path.exists(candidate) else os.path.abspath(path)
+        stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backups'), exist_ok=True)
+        target = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backups', f'helpdesk_{stamp}.db')
+        src = sqlite3.connect(path)
+        dst = sqlite3.connect(target)
+        with dst:
+            src.backup(dst)
+        src.close()
+        dst.close()
+        return send_file(target, as_attachment=True, download_name=f'helpdesk_backup_{stamp}.db')
+    except Exception:
+        logger.exception('Database backup failed')
+        flash('Backup failed. See the server log for details.', 'error')
         return redirect(url_for('admin_backup_restore'))
 
 @app.route('/admin/restore_system_backup', methods=['POST'])
@@ -3308,7 +3325,7 @@ def admin_users():
 def create_user():
     """Create a user in a school (school admins: their own school; super admin: any school)."""
     ctx = {'schools': _schools_for_forms(), 'roles': user_service.assignable_roles(current_user),
-           'form': {'role': request.args.get('role', '')}}
+           'form': {'role': request.args.get('role', ''), 'school_id': request.args.get('school_id', '')}}
     if request.method == 'GET':
         if ctx['form']['role'] == 'agent':
             ctx['form']['role'] = ''

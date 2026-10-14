@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Import Previous Tickets – {{ system_settings.system_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card mb-4">
+            <div class="card-header"><h4 class="mb-0"><i class="fas fa-file-import me-2"></i>Import Previous Tickets</h4></div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% if current_user.role == 'super_admin' %}
+                    <div class="mb-3">
+                        <label class="form-label" for="school_id">School</label>
+                        <select class="form-select" id="school_id" name="school_id">
+                            <option value="">— use the "school" column of the file —</option>
+                            {% for s in schools %}
+                            <option value="{{ s.id }}" {% if selected_school_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Tickets will be imported into <strong>{{ current_school.name if current_school else 'your school' }}</strong>.</p>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label" for="import_file">File (.csv or .xlsx)</label>
+                        <input class="form-control" type="file" id="import_file" name="import_file" accept=".csv,.xlsx" required>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="create_missing" name="create_missing_requesters" value="1">
+                        <label class="form-check-label" for="create_missing">Create accounts for requesters that do not exist yet (requires their email)</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="fallback" name="fallback_to_importer" value="1">
+                        <label class="form-check-label" for="fallback">Use me as requester when a requester is blank or unknown</label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="dry_run" name="dry_run" value="1">
+                        <label class="form-check-label" for="dry_run">Validate only (preview - nothing is saved)</label>
+                    </div>
+                    <button class="btn btn-primary" type="submit"><i class="fas fa-upload me-1"></i>Upload &amp; import</button>
+                    <a class="btn btn-outline-secondary ms-2" href="{{ url_for('tenant.import_template', kind='tickets', fmt='csv') }}"><i class="fas fa-download me-1"></i>CSV template</a>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('tenant.import_template', kind='tickets', fmt='xlsx') }}"><i class="fas fa-file-excel me-1"></i>Excel template</a>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>File format</h5></div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-light"><tr><th>Column</th><th>Required</th><th>Notes</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>title</code></td><td>Yes</td><td>Up to 200 characters.</td></tr>
+                            <tr><td><code>description</code></td><td>No</td><td>Defaults to the title.</td></tr>
+                            <tr><td><code>category</code></td><td>Yes</td><td><code>IT</code>, <code>FM</code> or <code>HSE</code></td></tr>
+                            <tr><td><code>priority</code></td><td>No</td><td>Low, Medium (default), High, Critical</td></tr>
+                            <tr><td><code>status</code></td><td>No</td><td>Open (default), Assigned, In Progress, Resolved, Closed</td></tr>
+                            <tr><td><code>requester</code></td><td>Yes*</td><td>Username or email of an existing user in the school (*or use the options above).</td></tr>
+                            <tr><td><code>assigned_to</code></td><td>No</td><td>Username or email of an agent of the school who handles that category.</td></tr>
+                            <tr><td><code>created_at</code>, <code>updated_at</code></td><td>No</td><td><code>YYYY-MM-DD HH:MM</code> or <code>DD/MM/YYYY</code>. <code>updated_at</code> is the closing date for closed tickets.</td></tr>
+                            <tr><td><code>ticket_id</code></td><td>No</td><td>Reference in your old system. Re-importing the same reference is skipped.</td></tr>
+                            <tr><td><code>comments</code></td><td>No</td><td>Resolution notes, stored as one comment.</td></tr>
+                            {% if current_user.role == 'super_admin' %}<tr><td><code>school</code></td><td>If no school selected</td><td>School web address (slug), name or id.</td></tr>{% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted small mb-0">Imported tickets keep their original dates, are not auto-assigned and do not send email notifications. Import users first so requesters and agents exist. Maximum 5,000 rows / 5 MB per file.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

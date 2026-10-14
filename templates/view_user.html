@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ user.display_name }} – {{ system_settings.system_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h3 class="mb-0"><i class="fas fa-user me-2"></i>{{ user.display_name }}</h3>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-light" href="{{ url_for('download_user_tickets', user_id=user.id) }}"><i class="fas fa-file-excel me-1"></i>Export tickets</a>
+        <a class="btn btn-primary" href="{{ url_for('edit_user', user_id=user.id) }}"><i class="fas fa-edit me-1"></i>Edit</a>
+        <a class="btn btn-secondary" href="{{ url_for('admin_users') }}">Back</a>
+    </div>
+</div>
+<div class="row g-3 mb-3">
+    <div class="col-md-5"><div class="card h-100"><div class="card-body">
+        <table class="table table-sm mb-0">
+            <tr><th>Username</th><td>{{ user.username }}</td></tr>
+            <tr><th>Email</th><td>{{ user.email }}</td></tr>
+            <tr><th>Role</th><td>{{ user.role.replace('_', ' ')|title }}</td></tr>
+            <tr><th>School</th><td>{{ user.school.name if user.school else '— platform —' }}</td></tr>
+            <tr><th>Status</th><td>{{ 'Active' if user.is_active else 'Inactive' }}</td></tr>
+            <tr><th>Created</th><td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '' }}</td></tr>
+        </table>
+    </div></div></div>
+    <div class="col-md-7"><div class="row g-3 h-100">
+        <div class="col-4"><div class="card text-center h-100"><div class="card-body"><h3>{{ stats.created }}</h3><small class="text-muted">Tickets raised</small></div></div></div>
+        <div class="col-4"><div class="card text-center h-100"><div class="card-body"><h3>{{ stats.assigned }}</h3><small class="text-muted">Assigned to them</small></div></div></div>
+        <div class="col-4"><div class="card text-center h-100"><div class="card-body"><h3>{{ stats.comments }}</h3><small class="text-muted">Comments</small></div></div></div>
+    </div></div>
+</div>
+{% for title, items in [('Tickets raised (latest 25)', created), ('Tickets assigned (latest 25)', assigned)] %}
+{% if items %}
+<div class="card mb-3">
+    <div class="card-header"><strong>{{ title }}</strong></div>
+    <div class="table-responsive"><table class="table table-sm table-hover mb-0">
+        <thead><tr><th>#</th><th>Title</th><th>Category</th><th>Status</th><th>Created</th></tr></thead>
+        <tbody>{% for t in items %}<tr><td>{{ t.id }}</td><td><a href="{{ url_for('view_ticket', ticket_id=t.id) }}">{{ t.title }}</a></td><td>{{ t.category }}</td><td>{{ t.status }}</td><td>{{ t.created_at.strftime('%Y-%m-%d') if t.created_at else '' }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

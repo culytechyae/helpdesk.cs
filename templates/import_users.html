@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Import Users – {{ system_settings.system_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card mb-4">
+            <div class="card-header"><h4 class="mb-0"><i class="fas fa-file-import me-2"></i>Bulk Import Users</h4></div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% if current_user.role == 'super_admin' %}
+                    <div class="mb-3">
+                        <label class="form-label" for="school_id">School</label>
+                        <select class="form-select" id="school_id" name="school_id">
+                            <option value="">— use the "school" column of the file —</option>
+                            {% for s in schools %}
+                            <option value="{{ s.id }}" {% if selected_school_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Rows without a "school" value go to this school. A "school" column (slug or name) overrides it per row.</div>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Users will be created in <strong>{{ current_school.name if current_school else 'your school' }}</strong>.</p>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label" for="import_file">File (.csv or .xlsx)</label>
+                        <input class="form-control" type="file" id="import_file" name="import_file" accept=".csv,.xlsx" required>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="require_pw" name="require_password_change" value="1" checked>
+                        <label class="form-check-label" for="require_pw">Require a new password at first sign-in</label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="dry_run" name="dry_run" value="1">
+                        <label class="form-check-label" for="dry_run">Validate only (preview - nothing is saved)</label>
+                    </div>
+                    <button class="btn btn-primary" type="submit"><i class="fas fa-upload me-1"></i>Upload &amp; import</button>
+                    <a class="btn btn-outline-secondary ms-2" href="{{ url_for('tenant.import_template', kind='users', fmt='csv') }}"><i class="fas fa-download me-1"></i>CSV template</a>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('tenant.import_template', kind='users', fmt='xlsx') }}"><i class="fas fa-file-excel me-1"></i>Excel template</a>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>File format</h5></div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-light"><tr><th>Column</th><th>Required</th><th>Notes</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>email</code></td><td>Yes</td><td>Unique across the platform. Users can sign in with it.</td></tr>
+                            <tr><td><code>username</code></td><td>No</td><td>Generated from the email when empty (must be unique platform-wide).</td></tr>
+                            <tr><td><code>full_name</code></td><td>No</td><td>Display name.</td></tr>
+                            <tr><td><code>role</code></td><td>No</td><td><code>user</code> (default), <code>it_agent</code>, <code>fm_agent</code>, <code>hse_agent</code>, <code>admin</code> (school admin)</td></tr>
+                            <tr><td><code>department</code></td><td>No</td><td>Free text.</td></tr>
+                            <tr><td><code>password</code></td><td>No</td><td>Min 8 characters. A strong temporary password is generated when empty and shown once on the result page.</td></tr>
+                            {% if current_user.role == 'super_admin' %}
+                            <tr><td><code>school</code></td><td>If no school selected</td><td>School web address (slug), name or id.</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted small mb-0">Existing emails are skipped, never overwritten. Maximum 5,000 rows / 5 MB per file.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

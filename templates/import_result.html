@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Import result – {{ system_settings.system_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h3 class="mb-0"><i class="fas fa-file-import me-2"></i>Import {{ module_label }} – {{ 'preview (nothing saved)' if result.dry_run else 'result' }}</h3>
+    <div>
+        <a class="btn btn-primary" href="{{ url_for('tenant.import_users_view' if kind == 'users' else 'tenant.import_tickets_view') }}"><i class="fas fa-redo me-1"></i>Import another file</a>
+        <a class="btn btn-secondary" href="{{ url_for('admin_users' if kind == 'users' else 'admin_tickets') }}">View {{ module_label|lower }}</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body"><h3 class="mb-0">{{ result.total_rows }}</h3><small class="text-muted">Rows read</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body"><h3 class="mb-0 text-success">{{ result.created|length }}</h3><small class="text-muted">{{ 'Would be imported' if result.dry_run else 'Imported' }}</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body"><h3 class="mb-0 text-secondary">{{ result.skipped|length }}</h3><small class="text-muted">Skipped (duplicates)</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body"><h3 class="mb-0 text-danger">{{ result.errors|length }}</h3><small class="text-muted">Errors</small></div></div></div>
+</div>
+
+{% if result.dry_run and result.created and not result.errors %}
+<div class="alert alert-success">Everything looks good. Run the import again without "Validate only" to save.</div>
+{% endif %}
+
+{% if result.errors %}
+<div class="card mb-4 border-danger">
+    <div class="card-header text-danger"><strong><i class="fas fa-exclamation-triangle me-2"></i>Rows with errors (not imported)</strong></div>
+    <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+            <thead><tr><th style="width:90px">Row</th><th>Problem</th></tr></thead>
+            <tbody>
+            {% for row, msg in result.errors[:500] %}<tr><td>{{ row if row else '-' }}</td><td>{{ msg }}</td></tr>{% endfor %}
+            </tbody>
+        </table>
+        {% if result.errors|length > 500 %}<div class="p-2 text-muted small">Showing the first 500 of {{ result.errors|length }} errors.</div>{% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% if result.skipped %}
+<div class="card mb-4">
+    <div class="card-header"><strong>Skipped rows</strong></div>
+    <div class="card-body p-0" style="max-height:260px;overflow:auto;">
+        <table class="table table-sm mb-0"><tbody>
+        {% for row, msg in result.skipped[:500] %}<tr><td style="width:90px">{{ row }}</td><td>{{ msg }}</td></tr>{% endfor %}
+        </tbody></table>
+    </div>
+</div>
+{% endif %}
+
+{% if result.created %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>{{ 'Rows that would be imported' if result.dry_run else 'Imported rows' }}</strong>
+        {% if kind == 'users' and not result.dry_run %}
+        <button class="btn btn-sm btn-outline-primary" type="button" onclick="downloadCredentials()"><i class="fas fa-download me-1"></i>Download credentials (CSV)</button>
+        {% endif %}
+    </div>
+    <div class="card-body p-0" style="max-height:420px;overflow:auto;">
+        <table class="table table-sm table-striped mb-0" id="createdTable">
+            {% if kind == 'users' %}
+            <thead><tr><th>Row</th><th>Username</th><th>Email</th><th>Role</th><th>School</th><th>Temporary password</th></tr></thead>
+            <tbody>{% for c in result.created %}<tr><td>{{ c.row }}</td><td>{{ c.username }}</td><td>{{ c.email }}</td><td>{{ c.role }}</td><td>{{ c.school }}</td><td>{% if c.password %}<code>{{ c.password }}</code>{% else %}<span class="text-muted">as provided</span>{% endif %}</td></tr>{% endfor %}</tbody>
+            {% else %}
+            <thead><tr><th>Row</th><th>Title</th><th>Category</th><th>Status</th><th>Requester</th><th>School</th></tr></thead>
+            <tbody>{% for c in result.created %}<tr><td>{{ c.row }}</td><td>{{ c.title }}</td><td>{{ c.category }}</td><td>{{ c.status }}</td><td>{{ c.requester }}</td><td>{{ c.school }}</td></tr>{% endfor %}</tbody>
+            {% endif %}
+        </table>
+    </div>
+    {% if kind == 'users' and not result.dry_run %}
+    <div class="card-footer text-muted small">Temporary passwords are only shown on this page. Share them securely; users must change them at first sign-in.</div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if result.new_users %}
+<div class="card mb-4">
+    <div class="card-header"><strong>Accounts created for requesters ({{ result.new_users|length }})</strong></div>
+    <div class="card-body p-0" style="max-height:260px;overflow:auto;">
+        <table class="table table-sm mb-0"><thead><tr><th>Username</th><th>Email</th><th>School</th></tr></thead><tbody>
+        {% for u in result.new_users %}<tr><td>{{ u.username }}</td><td>{{ u.email }}</td><td>{{ u.school }}</td></tr>{% endfor %}
+        </tbody></table>
+    </div>
+    <div class="card-footer text-muted small">These users have a random password: use "Reset password" on the user page when they need access.</div>
+</div>
+{% endif %}
+
+{% if kind == 'users' and not result.dry_run and result.created %}
+<script>
+function downloadCredentials() {
+    var rows = [['username', 'email', 'role', 'school', 'temporary_password']];
+    document.querySelectorAll('#createdTable tbody tr').forEach(function (tr) {
+        var c = tr.children;
+        rows.push([c[1].textContent, c[2].textContent, c[3].textContent, c[4].textContent,
+                   c[5].querySelector('code') ? c[5].textContent : '']);
+    });
+    var csv = rows.map(function (r) { return r.map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n');
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'}));
+    a.download = 'imported_users_credentials.csv';
+    a.click();
+}
+</script>
+{% endif %}
+{% endblock %}

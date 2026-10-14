@@ -1,61 +1,69 @@
-﻿{% extends "base.html" %}
-
+{% extends "base.html" %}
 {% block title %}Create User – {{ system_settings.system_name }}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0"><i class="fas fa-user-plus me-2"></i>Create New User</h4>
-            </div>
+            <div class="card-header"><h4 class="mb-0"><i class="fas fa-user-plus me-2"></i>Create New User</h4></div>
             <div class="card-body">
+                {% set sel_school = (form.get('school_id') or request.args.get('school_id') or '')|string %}
                 <form method="POST">
+                    {% if current_user.role == 'super_admin' %}
+                    <div class="mb-3" id="schoolRow">
+                        <label for="school_id" class="form-label">School *</label>
+                        <select class="form-select" id="school_id" name="school_id">
+                            <option value="">Select school</option>
+                            {% for s in schools %}<option value="{{ s.id }}" {% if sel_school == s.id|string %}selected{% endif %} {% if not s.is_active %}disabled{% endif %}>{{ s.name }}{% if not s.is_active %} (suspended){% endif %}</option>{% endfor %}
+                        </select>
+                        <div class="form-text">The user signs in to this school's helpdesk. Not needed for Super Admin.</div>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">The user will be added to <strong>{{ current_school.name if current_school else 'your school' }}</strong>.</p>
+                    {% endif %}
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="username" class="form-label">Username *</label>
-                            <input type="text" class="form-control" id="username" name="username" required>
+                            <label for="full_name" class="form-label">Full name</label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" maxlength="120" value="{{ form.get('full_name', '') }}">
                         </div>
                         <div class="col-md-6">
                             <label for="email" class="form-label">Email *</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
+                            <input type="email" class="form-control" id="email" name="email" required value="{{ form.get('email', '') }}">
                         </div>
                     </div>
-                    
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="password" class="form-label">Password *</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" maxlength="80" value="{{ form.get('username', '') }}" placeholder="auto from email">
                         </div>
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" minlength="8" autocomplete="new-password" placeholder="leave empty to generate">
+                            <div class="form-text">The user must change it at first sign-in.</div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="role" class="form-label">Role *</label>
                             <select class="form-select" id="role" name="role" required>
-                                <option value="">Select Role</option>
-                                <option value="user">Regular User</option>
-                                <option value="it_agent">IT Agent</option>
-                                <option value="fm_agent">FM Agent</option>
-                                <option value="admin">Admin</option>
+                                <option value="">Select role</option>
+                                {% for r in roles %}
+                                <option value="{{ r }}" {% if form.get('role') == r %}selected{% endif %}>{{ {'user': 'Regular User', 'it_agent': 'IT Agent', 'fm_agent': 'FM Agent', 'hse_agent': 'HSE Agent', 'admin': 'School Admin', 'super_admin': 'Super Admin (platform)'}[r] }}</option>
+                                {% endfor %}
                             </select>
                         </div>
+                        <div class="col-md-6">
+                            <label for="department" class="form-label">Department</label>
+                            <input type="text" class="form-control" id="department" name="department" maxlength="200" value="{{ form.get('department', '') }}">
+                        </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="department" class="form-label">Department</label>
-                        <input type="text" class="form-control" id="department" name="department" 
-                               placeholder="e.g., IT, Facilities, Administration">
-                    </div>
-                    
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ url_for('admin_users') }}" class="btn btn-secondary me-md-2">
-                            <i class="fas fa-times me-1"></i>Cancel
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-user-plus me-1"></i>Create User
-                        </button>
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus me-1"></i>Create User</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

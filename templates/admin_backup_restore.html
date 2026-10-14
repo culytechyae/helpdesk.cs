@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Backups – {{ system_settings.system_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header"><h4 class="mb-0"><i class="fas fa-save me-2"></i>Database backup</h4></div>
+            <div class="card-body">
+                <p>A backup contains the data of <strong>all schools</strong>. Keep it in a secure location.</p>
+                {% if is_sqlite %}
+                <form method="POST" action="{{ url_for('create_database_backup') }}">
+                    <button class="btn btn-primary" type="submit"><i class="fas fa-download me-1"></i>Download SQLite backup</button>
+                </form>
+                {% else %}
+                <div class="alert alert-info mb-0">This installation uses PostgreSQL. Create backups with
+                    <code>pg_dump</code> (schedule it on the database server); restores are done with <code>pg_restore</code>.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

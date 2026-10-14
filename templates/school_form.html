@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if school else 'Add' }} School – {{ system_settings.system_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-school me-2"></i>{{ 'Edit School & Branding' if school else 'Add School' }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data" id="schoolForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="name">School name *</label>
+                            <input class="form-control" id="name" name="name" maxlength="150" required value="{{ form.get('name', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="display_name">Name shown in the helpdesk</label>
+                            <input class="form-control" id="display_name" name="display_name" maxlength="150"
+                                   placeholder="e.g. Al Forsan Helpdesk" value="{{ form.get('display_name', '') }}">
+                            <div class="form-text">Appears in the header, login page and emails. Defaults to the school name.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="slug">Web address</label>
+                            <div class="input-group">
+                                <span class="input-group-text">/s/</span>
+                                <input class="form-control" id="slug" name="slug" maxlength="60" pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                                       placeholder="auto" value="{{ form.get('slug', '') }}">
+                            </div>
+                            <div class="form-text">Branded sign-in page for this school.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="contact_email">Contact email</label>
+                            <input class="form-control" type="email" id="contact_email" name="contact_email" value="{{ form.get('contact_email', '') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="primary_color">Primary colour</label>
+                            <div class="input-group">
+                                <input type="color" class="form-control form-control-color" id="primary_picker" value="{{ form.get('primary_color') or '#2c5f5f' }}">
+                                <input class="form-control" id="primary_color" name="primary_color" maxlength="7" placeholder="#2c5f5f" value="{{ form.get('primary_color', '') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="secondary_color">Accent colour</label>
+                            <div class="input-group">
+                                <input type="color" class="form-control form-control-color" id="secondary_picker" value="{{ form.get('secondary_color') or '#4a9b9b' }}">
+                                <input class="form-control" id="secondary_color" name="secondary_color" maxlength="7" placeholder="#4a9b9b" value="{{ form.get('secondary_color', '') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="logo_file">Logo</label>
+                            <input class="form-control" type="file" id="logo_file" name="logo_file" accept=".png,.jpg,.jpeg,.gif,.webp">
+                            <div class="form-text">PNG, JPG, GIF or WebP, up to 2 MB.</div>
+                            {% if school and school.logo_filename %}
+                            <div class="mt-2 d-flex align-items-center gap-3">
+                                <img src="{{ url_for('static', filename='uploads/' + school.logo_filename) }}" alt="Current logo" style="height:48px;" class="bg-light p-1 rounded">
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="remove_logo" value="1" id="remove_logo">
+                                    <label class="form-check-label" for="remove_logo">Remove logo</label></div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if not school %}
+                    <hr>
+                    <h6><i class="fas fa-user-shield me-2"></i>First school administrator <small class="text-muted">(optional)</small></h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="admin_name">Full name</label>
+                            <input class="form-control" id="admin_name" name="admin_name" value="{{ request.form.get('admin_name', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="admin_email">Email</label>
+                            <input class="form-control" type="email" id="admin_email" name="admin_email" value="{{ request.form.get('admin_email', '') }}">
+                            <div class="form-text">A temporary password is generated and shown once.</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-4 p-3 rounded" id="preview" style="background:linear-gradient(135deg,var(--p,#2c5f5f),var(--s,#4a9b9b));color:#fff;">
+                        <strong id="previewName">{{ form.get('display_name') or form.get('name') or 'School name' }}</strong>
+                        <small class="d-block opacity-75">Live colour preview</small>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{{ url_for('tenant.platform_dashboard') }}" class="btn btn-secondary">Cancel</a>
+                        <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>{{ 'Save changes' if school else 'Create school' }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    function link(picker, text, cssVar) {
+        var p = document.getElementById(picker), t = document.getElementById(text);
+        function apply() { if (/^#[0-9a-fA-F]{6}$/.test(t.value)) document.getElementById('preview').style.setProperty(cssVar, t.value); }
+        p.addEventListener('input', function () { t.value = p.value; apply(); });
+        t.addEventListener('input', function () { if (/^#[0-9a-fA-F]{6}$/.test(t.value)) p.value = t.value; apply(); });
+        apply();
+    }
+    link('primary_picker', 'primary_color', '--p');
+    link('secondary_picker', 'secondary_color', '--s');
+    var name = document.getElementById('name'), disp = document.getElementById('display_name');
+    function nm() { document.getElementById('previewName').textContent = disp.value || name.value || 'School name'; }
+    name.addEventListener('input', nm); disp.addEventListener('input', nm);
+})();
+</script>
+{% endblock %}

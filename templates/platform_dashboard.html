@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Schools – {{ system_settings.system_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h2 class="mb-0"><i class="fas fa-school me-2"></i>Schools</h2>
+        <p class="text-white-50 mb-0">Each school has its own users, agents, tickets and branding.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('admin_users') }}" class="btn btn-secondary"><i class="fas fa-users me-1"></i>All Users</a>
+        <a href="{{ url_for('tenant.import_users_view') }}" class="btn btn-success"><i class="fas fa-file-import me-1"></i>Import Users</a>
+        <a href="{{ url_for('tenant.school_new') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Add School</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body"><h3 class="mb-0">{{ schools|length }}</h3><small class="text-muted">Schools</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body"><h3 class="mb-0">{{ totals.users }}</h3><small class="text-muted">Users</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body"><h3 class="mb-0">{{ totals.tickets }}</h3><small class="text-muted">Tickets</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body"><h3 class="mb-0">{{ totals.open }}</h3><small class="text-muted">Open tickets</small></div></div></div>
+</div>
+
+{% if schools %}
+<div class="row g-3">
+    {% for school in schools %}
+    {% set st = stats.get(school.id, empty) %}
+    <div class="col-12 col-lg-6">
+        <div class="card h-100" style="border-top:4px solid {{ school.primary_color or '#2c5f5f' }};">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    {% if school.logo_filename %}
+                    <img src="{{ url_for('static', filename='uploads/' + school.logo_filename) }}" alt="" style="height:48px;width:48px;object-fit:contain;" class="me-3">
+                    {% else %}
+                    <div class="me-3 d-flex align-items-center justify-content-center rounded" style="height:48px;width:48px;background:{{ school.primary_color or '#2c5f5f' }};color:#fff;"><i class="fas fa-school"></i></div>
+                    {% endif %}
+                    <div class="flex-grow-1">
+                        <h5 class="mb-0">{{ school.name }}
+                            {% if not school.is_active %}<span class="badge bg-danger ms-1">Suspended</span>{% endif %}
+                        </h5>
+                        <small class="text-muted">Sign-in link: <a href="{{ url_for('school_login', slug=school.slug) }}">/s/{{ school.slug }}</a></small>
+                    </div>
+                </div>
+                <div class="row text-center g-2 mb-3">
+                    <div class="col-3"><div class="fw-bold">{{ st.users }}</div><small class="text-muted">Users</small></div>
+                    <div class="col-3"><div class="fw-bold">{{ st.agents }}</div><small class="text-muted">Agents</small></div>
+                    <div class="col-3"><div class="fw-bold">{{ st.tickets }}</div><small class="text-muted">Tickets</small></div>
+                    <div class="col-3"><div class="fw-bold">{{ st.open }}</div><small class="text-muted">Open</small></div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <form method="POST" action="{{ url_for('tenant.school_enter', school_id=school.id) }}">
+                        <button class="btn btn-sm btn-primary" {% if not school.is_active %}disabled{% endif %}><i class="fas fa-sign-in-alt me-1"></i>Manage</button>
+                    </form>
+                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('tenant.school_edit', school_id=school.id) }}"><i class="fas fa-palette me-1"></i>Branding</a>
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin_users', school_id=school.id) }}"><i class="fas fa-users me-1"></i>Users</a>
+                    <a class="btn btn-sm btn-outline-success" href="{{ url_for('create_user') }}?school_id={{ school.id }}"><i class="fas fa-user-plus me-1"></i>Add user</a>
+                    <form method="POST" action="{{ url_for('tenant.school_toggle', school_id=school.id) }}">
+                        <button class="btn btn-sm btn-outline-{{ 'warning' if school.is_active else 'success' }}"
+                                onclick="return confirm('{{ 'Suspend this school? Its users will not be able to sign in.' if school.is_active else 'Activate this school?' }}')">
+                            <i class="fas fa-{{ 'pause' if school.is_active else 'play' }} me-1"></i>{{ 'Suspend' if school.is_active else 'Activate' }}
+                        </button>
+                    </form>
+                    {% if not st.users and not st.tickets %}
+                    <form method="POST" action="{{ url_for('tenant.school_delete', school_id=school.id) }}">
+                        <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this empty school permanently?')"><i class="fas fa-trash"></i></button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card"><div class="card-body text-center py-5">
+    <i class="fas fa-school fa-3x text-muted mb-3"></i>
+    <h5>No schools yet</h5>
+    <p class="text-muted">Add your first school, then create its administrator and users.</p>
+    <a href="{{ url_for('tenant.school_new') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Add School</a>
+</div></div>
+{% endif %}
+{% endblock %}

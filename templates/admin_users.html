@@ -1,172 +1,106 @@
-﻿{% extends "base.html" %}
-
+{% extends "base.html" %}
 {% block title %}User Management – {{ system_settings.system_name }}{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-            <h2><i class="fas fa-users me-2"></i>User Management</h2>
-            <div>
-                <a href="{{ url_for('bulk_create_users') }}" class="btn btn-success me-2">
-                    <i class="fas fa-upload me-1"></i>Bulk Create
-                </a>
-                <a href="{{ url_for('create_user') }}" class="btn btn-primary">
-                    <i class="fas fa-user-plus me-1"></i>Create User
-                </a>
-            </div>
-        </div>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h2 class="mb-0"><i class="fas fa-users me-2"></i>User Management</h2>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('tenant.import_users_view') }}" class="btn btn-success"><i class="fas fa-file-import me-1"></i>Bulk Import</a>
+        <a href="{{ url_for('create_user', school_id=filters.school_id) if filters.school_id else url_for('create_user') }}" class="btn btn-primary"><i class="fas fa-user-plus me-1"></i>Create User</a>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Users</h5>
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="GET" class="row g-2 align-items-end">
+            {% if current_user.role == 'super_admin' %}
+            <div class="col-md-3">
+                <label class="form-label small mb-0">School</label>
+                <select class="form-select form-select-sm" name="school_id">
+                    <option value="">All schools</option>
+                    {% for s in schools %}<option value="{{ s.id }}" {% if filters.school_id == s.id %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+                </select>
             </div>
-            <div class="card-body">
-                {% if users %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Username</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Department</th>
-                                    <th>Status</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for user in users %}
-                                <tr>
-                                    <td>{{ user.id }}</td>
-                                    <td>
-                                        <strong>{{ user.username }}</strong>
-                                        {% if user.id == current_user.id %}
-                                            <span class="badge bg-info ms-1">You</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ user.email }}</td>
-                                    <td>
-                                        <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'primary' if user.role == 'it_agent' else 'success' if user.role == 'fm_agent' else 'secondary' }}">
-                                            {{ user.role|title }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        {% if user.department %}
-                                            {{ user.department }}
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if user.is_active %}
-                                            <span class="badge bg-success">Active</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Inactive</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
-                                    <td>
-                                        {% if user.id != current_user.id %}
-                                            <div class="btn-group" role="group">
-                                                <a href="{{ url_for('edit_user', user_id=user.id) }}" 
-                                                   class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <form method="POST" action="{{ url_for('toggle_user_status', user_id=user.id) }}" 
-                                                      style="display: inline;">
-                                                    <button type="submit" class="btn btn-sm btn-outline-{{ 'warning' if user.is_active else 'success' }}" 
-                                                            onclick="return confirm('Are you sure you want to {{ 'deactivate' if user.is_active else 'activate' }} this user?')">
-                                                        <i class="fas fa-{{ 'ban' if user.is_active else 'check' }}"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        {% else %}
-                                            <span class="text-muted">Current User</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <p class="text-muted text-center">No users found.</p>
-                {% endif %}
+            {% endif %}
+            <div class="col-md-3">
+                <label class="form-label small mb-0">Role</label>
+                <select class="form-select form-select-sm" name="role">
+                    <option value="">All roles</option>
+                    {% for r in ['user','it_agent','fm_agent','hse_agent','admin'] + (['super_admin'] if current_user.role == 'super_admin' else []) %}
+                    <option value="{{ r }}" {% if filters.role == r %}selected{% endif %}>{{ r.replace('_', ' ')|title }}</option>{% endfor %}
+                </select>
             </div>
-        </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-0">Status</label>
+                <select class="form-select form-select-sm" name="status">
+                    <option value="">Any</option>
+                    <option value="active" {% if filters.status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if filters.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-0">Search</label>
+                <input class="form-control form-control-sm" name="q" value="{{ filters.q }}" placeholder="name, username or email">
+            </div>
+            <div class="col-md-1 d-grid"><button class="btn btn-sm btn-primary">Filter</button></div>
+        </form>
     </div>
 </div>
 
-<!-- User Statistics -->
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ users|length }}</h4>
-                        <p class="card-text">Total Users</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-users fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ users|selectattr('role', 'equalto', 'user')|list|length }}</h4>
-                        <p class="card-text">Regular Users</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-user fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-info">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ users|selectattr('role', 'equalto', 'it_agent')|list|length }}</h4>
-                        <p class="card-text">IT Agents</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-laptop fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">{{ users|selectattr('role', 'equalto', 'fm_agent')|list|length }}</h4>
-                        <p class="card-text">FM Agents</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-tools fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="row g-3 mb-3">
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body py-2"><h4 class="mb-0">{{ total }}</h4><small class="text-muted">Matching users</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body py-2"><h4 class="mb-0">{{ counts.get('user', 0) }}</h4><small class="text-muted">Regular users</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body py-2"><h4 class="mb-0">{{ counts.get('it_agent', 0) + counts.get('fm_agent', 0) + counts.get('hse_agent', 0) }}</h4><small class="text-muted">Agents (IT / FM / HSE)</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body py-2"><h4 class="mb-0">{{ counts.get('admin', 0) }}</h4><small class="text-muted">School admins</small></div></div></div>
 </div>
 
-
-{% endblock %} 
+<div class="card">
+    <div class="card-body">
+        {% if users %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead><tr><th>User</th><th>Email</th>{% if current_user.role == 'super_admin' %}<th>School</th>{% endif %}<th>Role</th><th>Status</th><th>Created</th><th></th></tr></thead>
+                <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('view_user', user_id=user.id) }}"><strong>{{ user.display_name }}</strong></a>
+                        {% if user.full_name %}<small class="text-muted d-block">{{ user.username }}</small>{% endif %}
+                        {% if user.id == current_user.id %}<span class="badge bg-info ms-1">You</span>{% endif %}
+                    </td>
+                    <td>{{ user.email }}</td>
+                    {% if current_user.role == 'super_admin' %}<td>{{ user.school.name if user.school else '— platform —' }}</td>{% endif %}
+                    <td><span class="badge bg-{{ 'dark' if user.role == 'super_admin' else 'danger' if user.role == 'admin' else 'primary' if user.role == 'it_agent' else 'success' if user.role == 'fm_agent' else 'warning text-dark' if user.role == 'hse_agent' else 'secondary' }}">{{ user.role.replace('_', ' ')|title }}</span></td>
+                    <td>{% if user.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</td>
+                    <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '' }}</td>
+                    <td class="text-end">
+                        {% if user.id != current_user.id %}
+                        <div class="btn-group">
+                            <a href="{{ url_for('edit_user', user_id=user.id) }}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
+                            <form method="POST" action="{{ url_for('toggle_user_status', user_id=user.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-{{ 'warning' if user.is_active else 'success' }}" title="{{ 'Deactivate' if user.is_active else 'Activate' }}"
+                                        onclick="return confirm('Are you sure you want to {{ 'deactivate' if user.is_active else 'activate' }} this user?')">
+                                    <i class="fas fa-{{ 'ban' if user.is_active else 'check' }}"></i></button>
+                            </form>
+                        </div>
+                        {% else %}<span class="text-muted small">Current user</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if pagination.pages > 1 %}
+        <nav><ul class="pagination pagination-sm justify-content-center mb-0">
+            {% for p in pagination.iter_pages() %}
+                {% if p %}<li class="page-item {{ 'active' if p == pagination.page }}"><a class="page-link" href="{{ url_for('admin_users', page=p, school_id=filters.school_id, role=filters.role, status=filters.status, q=filters.q) }}">{{ p }}</a></li>
+                {% else %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+            {% endfor %}
+        </ul></nav>
+        {% endif %}
+        {% else %}
+        <p class="text-muted text-center mb-0">No users found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

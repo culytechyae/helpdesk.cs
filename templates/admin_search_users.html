@@ -6,7 +6,7 @@
 <div class="row mb-4">
     <div class="col-12">
         <h2><i class="fas fa-user-search me-2"></i>Search Users</h2>
-        <p class="text-muted">Search users across all databases with advanced filters</p>
+        <p class="text-muted">Search users with advanced filters</p>
     </div>
 </div>
 
@@ -162,7 +162,7 @@
         </div>
     </div>
 </div>
-{% elif query or role or department or is_active is not none %}
+{% elif searched %}
 <div class="row mb-4">
     <div class="col-12">
         <div class="card">

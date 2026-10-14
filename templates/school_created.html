@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}School created – {{ system_settings.system_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-body text-center p-5">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h3>{{ school.name }} is ready</h3>
+                <p class="text-muted">Users sign in at
+                    <a href="{{ url_for('school_login', slug=school.slug, _external=True) }}">{{ url_for('school_login', slug=school.slug, _external=True) }}</a>
+                    (or the main login page).</p>
+                {% if admin %}
+                <div class="alert alert-warning text-start">
+                    <strong>School administrator created.</strong> Copy these credentials now - the password is not shown again.
+                    <table class="table table-sm mb-0 mt-2">
+                        <tr><th>Username</th><td><code>{{ admin.username }}</code></td></tr>
+                        <tr><th>Email</th><td>{{ admin.email }}</td></tr>
+                        <tr><th>Temporary password</th><td><code>{{ admin.password }}</code></td></tr>
+                    </table>
+                    <small>They will be asked to choose a new password at first sign-in.</small>
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <a href="{{ url_for('tenant.platform_dashboard') }}" class="btn btn-primary">Back to schools</a>
+                    <a href="{{ url_for('create_user') }}?school_id={{ school.id }}" class="btn btn-outline-primary">Add users</a>
+                    <a href="{{ url_for('tenant.import_users_view') }}" class="btn btn-outline-success">Bulk import users</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
