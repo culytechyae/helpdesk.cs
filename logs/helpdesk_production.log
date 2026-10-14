@@ -21028,3 +21028,341 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
  [in D:\helpdesk.cs\app.py:325]
 2026-06-07 05:40:41,998 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
 2026-06-07 05:40:41,999 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/manifest.json [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:41:37,069 INFO: Request: GET http://127.0.0.1:5000/admin/database_management - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:37,171 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:37,171 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:37,172 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:41:37,173 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:41:37,173 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:41:37,173 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:41:37,173 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4076, in manifest
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:41:37,173 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4081, in service_worker
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:41:37,174 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:41:37,174 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:41:37,175 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/service-worker.js [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:41:37,175 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/manifest.json [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:41:40,553 INFO: Request: GET http://127.0.0.1:5000/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:40,558 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:40,620 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:40,622 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:41:40,622 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:41:40,623 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:40,623 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4081, in service_worker
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:41:40,624 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:41:40,625 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:41:40,625 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:41:40,626 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/service-worker.js [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:41:40,626 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4076, in manifest
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:41:40,628 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:41:40,630 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/manifest.json [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:41:43,958 INFO: Request: GET http://127.0.0.1:5000/admin/tickets - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:43,958 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1428]
+2026-06-07 05:41:43,958 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1429]
+2026-06-07 05:41:43,958 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1430]
+2026-06-07 05:41:43,958 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1431]
+2026-06-07 05:41:43,959 INFO: Total tickets before filter: 0 [in D:\helpdesk.cs\app.py:1440]
+2026-06-07 05:41:43,962 INFO: Final filtered ticket count: 0 [in D:\helpdesk.cs\app.py:1527]
+2026-06-07 05:41:43,966 INFO: Retrieved 0 tickets after filtering [in D:\helpdesk.cs\app.py:1554]
+2026-06-07 05:41:44,073 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:44,076 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:41:44,077 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:44,077 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:41:44,078 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4081, in service_worker
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:41:44,079 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:41:44,080 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/service-worker.js [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:41:44,081 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:41:44,082 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:41:44,082 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4076, in manifest
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:41:44,083 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:41:44,085 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/manifest.json [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:41:49,508 INFO: Request: GET http://127.0.0.1:5000/admin/tickets - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:49,508 INFO: === FILTER DEBUG === [in D:\helpdesk.cs\app.py:1428]
+2026-06-07 05:41:49,508 INFO: All request.args: {} [in D:\helpdesk.cs\app.py:1429]
+2026-06-07 05:41:49,508 INFO: Status filter (raw): "" [in D:\helpdesk.cs\app.py:1430]
+2026-06-07 05:41:49,508 INFO: Category filter: "", Priority: "" [in D:\helpdesk.cs\app.py:1431]
+2026-06-07 05:41:49,509 INFO: Total tickets before filter: 0 [in D:\helpdesk.cs\app.py:1440]
+2026-06-07 05:41:49,510 INFO: Final filtered ticket count: 0 [in D:\helpdesk.cs\app.py:1527]
+2026-06-07 05:41:49,511 INFO: Retrieved 0 tickets after filtering [in D:\helpdesk.cs\app.py:1554]
+2026-06-07 05:41:49,563 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:49,565 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:41:49,566 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:49,566 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:41:49,567 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4081, in service_worker
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:41:49,568 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:41:49,570 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/service-worker.js [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:41:49,571 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:41:49,571 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:41:49,571 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4076, in manifest
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:41:49,572 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:41:49,574 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/manifest.json [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:41:52,546 INFO: Request: GET http://127.0.0.1:5000/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:52,551 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:52,615 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:52,617 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:41:52,617 ERROR: URL: http://127.0.0.1:5000/static/service-worker.js, User: admin, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:41:52,617 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4081, in service_worker
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:41:52,618 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:41:52,619 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:41:52,620 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/service-worker.js [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:41:52,621 ERROR: Application Error: 404 Not Found: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. [in D:\helpdesk.cs\app.py:323]
+2026-06-07 05:41:52,621 ERROR: URL: http://127.0.0.1:5000/static/manifest.json, User: Not logged in, IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:324]
+2026-06-07 05:41:52,621 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\helpdesk.cs\app.py", line 4076, in manifest
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 554, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Magesh\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+ [in D:\helpdesk.cs\app.py:325]
+2026-06-07 05:41:52,622 ERROR: Failed to send error notification email: name 'ERROR_NOTIFICATION_EMAIL' is not defined [in D:\helpdesk.cs\app.py:299]
+2026-06-07 05:41:52,624 WARNING: Response: 404 for GET http://127.0.0.1:5000/static/manifest.json [in D:\helpdesk.cs\app.py:3229]
+2026-06-07 05:43:27,869 INFO: Request: GET http://127.0.0.1:5000/ - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:43:27,938 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:43:27,983 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:43:28,037 INFO: Request: GET http://127.0.0.1:5000/static/favicon.ico - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:43:28,089 INFO: Request: GET http://127.0.0.1:5000/static/icon-192x192.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:43:28,144 INFO: Request: GET http://127.0.0.1:5000/static/icon-512x512.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:43:28,194 INFO: Request: GET http://127.0.0.1:5000/static/browserconfig.xml - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:43:34,729 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:43:43,634 INFO: Request: HEAD http://127.0.0.1:5000/static/service-worker.js - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:43:43,715 INFO: Request: HEAD http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:03,794 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:04,254 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:04,463 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:04,466 INFO: Request: GET http://127.0.0.1:5000/static/favicon.ico - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:04,468 INFO: Request: GET http://127.0.0.1:5000/static/icon-144x144.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:04,489 INFO: Request: GET http://127.0.0.1:5000/ - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:04,492 INFO: Request: GET http://127.0.0.1:5000/static/favicon.ico - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:04,493 INFO: Request: GET http://127.0.0.1:5000/login - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:04,497 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:04,500 INFO: Request: GET http://127.0.0.1:5000/static/icon-192x192.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:04,504 INFO: Request: GET http://127.0.0.1:5000/static/icon-512x512.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:08,714 INFO: Request: GET http://127.0.0.1:5000/login - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:08,753 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:08,765 INFO: Request: GET http://127.0.0.1:5000/static/icon-144x144.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:16,636 INFO: Request: GET http://127.0.0.1:5000/static/icon-128x128.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:16,637 INFO: Request: GET http://127.0.0.1:5000/static/icon-144x144.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:16,638 INFO: Request: GET http://127.0.0.1:5000/static/icon-152x152.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:16,640 INFO: Request: GET http://127.0.0.1:5000/static/icon-384x384.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:16,640 INFO: Request: GET http://127.0.0.1:5000/static/icon-72x72.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:16,643 INFO: Request: GET http://127.0.0.1:5000/static/icon-96x96.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:16,644 INFO: Request: GET http://127.0.0.1:5000/static/icon-192x192.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:16,647 INFO: Request: GET http://127.0.0.1:5000/static/icon-maskable-512x512.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:16,650 INFO: Request: GET http://127.0.0.1:5000/static/icon-512x512.png - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:24,888 INFO: Request: POST http://127.0.0.1:5000/login - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:25,013 INFO: Request: GET http://127.0.0.1:5000/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:25,020 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:25,087 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:25,144 INFO: Request: GET http://127.0.0.1:5000/static/icon-144x144.png - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:30,215 INFO: Request: GET http://127.0.0.1:5000/admin/users - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:30,292 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:30,309 INFO: Request: GET http://127.0.0.1:5000/static/icon-144x144.png - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:32,985 INFO: Request: GET http://127.0.0.1:5000/user/ticket_summary - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:33,040 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:33,066 INFO: Request: GET http://127.0.0.1:5000/static/icon-144x144.png - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:35,546 INFO: Request: GET http://127.0.0.1:5000/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:35,553 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:35,607 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:35,627 INFO: Request: GET http://127.0.0.1:5000/static/icon-144x144.png - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:38,639 INFO: Request: GET http://127.0.0.1:5000/ - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:38,645 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:38,695 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:38,708 INFO: Request: GET http://127.0.0.1:5000/static/icon-144x144.png - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:39,387 INFO: Request: GET http://127.0.0.1:5000/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:39,393 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:39,446 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:39,459 INFO: Request: GET http://127.0.0.1:5000/static/icon-144x144.png - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:41,858 INFO: Request: GET http://127.0.0.1:5000/admin/summary_reports - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:41,937 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:41,974 INFO: Request: GET http://127.0.0.1:5000/static/icon-144x144.png - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:46,560 INFO: Request: GET http://127.0.0.1:5000/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:46,566 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:46,613 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:44:46,629 INFO: Request: GET http://127.0.0.1:5000/static/icon-144x144.png - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:14,963 INFO: Request: GET http://127.0.0.1:5000/admin/database_management - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:15,021 INFO: Request: GET http://127.0.0.1:5000/static/service-worker.js - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:15,022 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:15,038 INFO: Request: GET http://127.0.0.1:5000/login - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:15,040 INFO: Request: GET http://127.0.0.1:5000/ - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:15,041 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:15,046 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:15,050 INFO: Request: GET http://127.0.0.1:5000/static/icon-192x192.png - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:15,053 INFO: Request: GET http://127.0.0.1:5000/static/icon-512x512.png - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:30,510 INFO: Request: GET http://127.0.0.1:5000/ - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:30,514 INFO: Request: GET http://127.0.0.1:5000/admin/dashboard - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:30,579 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:33,488 INFO: Request: GET http://127.0.0.1:5000/admin/summary_reports - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-06-07 05:45:33,584 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]

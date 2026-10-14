@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, session, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, session, send_from_directory, g, abort
 from werkzeug.utils import secure_filename
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.exceptions import HTTPException
+from urllib.parse import urlparse
+from flask_wtf.csrf import CSRFProtect, CSRFError
+from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta, timezone
 import os
@@ -35,6 +37,22 @@ from logging.handlers import RotatingFileHandler
 import sys
 import traceback
 from config import get_config
+from extensions import db, login_manager
+from models import (
+    School, User, Ticket, UserActivityLog, Comment, EmailSettings, EmailTemplate, SystemSettings,
+    utc_now, ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_USER, AGENT_ROLES, ADMIN_ROLES, ALL_ROLES,
+    CATEGORY_AGENT_ROLE, CATEGORIES, PRIORITIES,
+)
+from access import (
+    MODULE_PERMISSIONS, check_module_access, require_module_access, admin_required, can_access_ticket,
+)
+import tenancy
+import user_service
+from tenant_views import bp as tenant_bp
+from tenancy import (
+    all_schools, unscoped_get, build_theme, active_school, run_migrations, platform_scope,
+    PLATFORM_ENDPOINTS, super_admin_required, school_admin_required,
+)
 
 # Load environment variables
 load_dotenv()
@@ -48,7 +66,7 @@ if not os.path.exists('logs'):
     try:
         os.makedirs('logs')
     except PermissionError:
-        print("Warning: Could not create logs directory due to permissions")
+        logger.debug("Warning: Could not create logs directory due to permissions")
 
 # Set up file handler for logging
 try:
@@ -59,40 +77,55 @@ try:
     file_handler.setLevel(logging.INFO)
     logger.addHandler(file_handler)
 except (PermissionError, OSError) as e:
-    print(f"Warning: Could not set up file logging: {e}")
+    logger.debug(f"Warning: Could not set up file logging: {e}")
     # Fall back to console logging only
     pass
 
 app = Flask(__name__)
 
-LOGO_UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+LOGO_UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
+SCHOOL_LOGO_FOLDER = os.path.join(LOGO_UPLOAD_FOLDER, 'schools')
 ALLOWED_LOGO_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'}
-
-# Add tojson filter for templates
-@app.template_filter('tojson')
-def tojson_filter(obj):
-    """Convert Python object to JSON string for use in JavaScript"""
-    return json.dumps(obj)
 
 # Load configuration from config file
 config_class = get_config()
 app.config.from_object(config_class)
 
-# Additional configuration for production
-if app.config['FLASK_ENV'] == 'production':
-    app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    app.config['SESSION_COOKIE_PATH'] = '/'
-    app.config['SESSION_REFRESH_EACH_REQUEST'] = False
+_INSECURE_KEYS = {None, '', 'dev-secret-key', 'your-super-secret-production-key-change-this'}
+
+
+def _resolve_secret_key():
+    """Never run with a publicly-known SECRET_KEY: a forged session would cross tenants."""
+    key = os.environ.get('SECRET_KEY') or app.config.get('SECRET_KEY')
+    if key not in _INSECURE_KEYS:
+        return key
+    if app.config['FLASK_ENV'] != 'production':
+        return key or 'dev-secret-key'
+    import secrets
+    key_file = os.path.join(app.instance_path, 'secret_key')
+    os.makedirs(app.instance_path, exist_ok=True)
+    if os.path.exists(key_file):
+        with open(key_file, encoding='utf-8') as fh:
+            return fh.read().strip()
+    key = secrets.token_hex(32)
+    with open(key_file, 'w', encoding='utf-8') as fh:
+        fh.write(key)
+    logger.warning('SECRET_KEY not configured: generated one at %s. Set SECRET_KEY in the environment.', key_file)
+    return key
+
+
+app.config['SECRET_KEY'] = _resolve_secret_key()
+
+# Cookie hardening (set SESSION_COOKIE_SECURE=1 when served over HTTPS)
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('SESSION_COOKIE_SECURE', '0') in ('1', 'true', 'True')
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['REMEMBER_COOKIE_HTTPONLY'] = True
+app.config['REMEMBER_COOKIE_SECURE'] = app.config['SESSION_COOKIE_SECURE']
+app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
 
 # Session configuration to prevent logout issues
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)  # 24 hour session
-
-# Helper function for UTC datetime
-def utc_now():
-    """Get current UTC datetime"""
-    return datetime.now(timezone.utc)
 
 def prevent_redirect_loop(f):
     """Decorator to prevent redirect loops by tracking redirect history"""
@@ -120,75 +153,6 @@ def prevent_redirect_loop(f):
         return result
     return decorated_function
 
-# Module permissions configuration
-MODULE_PERMISSIONS = {
-    'system_management': ['super_admin', 'admin'],
-    'database_management': ['super_admin', 'admin'],
-    'backup_restore': ['super_admin', 'admin'],
-    'user_management': ['super_admin', 'admin'],
-    'agent_management': ['super_admin', 'admin'],
-    'bulk_user_creation': ['super_admin', 'admin'],
-    'email_settings': ['super_admin', 'admin'],
-    'email_templates': ['super_admin', 'admin'],
-    'summary_reports': ['super_admin', 'admin', 'it_agent', 'fm_agent'],
-    'ticket_management': ['super_admin', 'admin', 'it_agent', 'fm_agent'],
-    'search_tickets': ['super_admin', 'admin', 'it_agent', 'fm_agent'],
-    'search_users': ['super_admin', 'admin'],
-    'settings': ['super_admin', 'admin']
-}
-
-def check_module_access(module_name):
-    """Check if current user has access to a specific module"""
-    if not current_user.is_authenticated:
-        print(f"DEBUG: User not authenticated for module {module_name}")
-        return False
-    
-    print(f"DEBUG: Checking access for user {current_user.username} (role: {current_user.role}) to module {module_name}")
-    print(f"DEBUG: User ID: {current_user.id}, Email: {current_user.email}")
-    print(f"DEBUG: User role type: {type(current_user.role)}")
-    print(f"DEBUG: User role value: '{current_user.role}'")
-    
-    # Super admin has access to everything - check both 'super_admin' and 'admin' roles
-    if current_user.role in ['super_admin', 'admin']:
-        print(f"DEBUG: Super admin/Admin access granted to {module_name}")
-        return True
-    
-    # Check if user's role is allowed for this module
-    allowed_roles = MODULE_PERMISSIONS.get(module_name, [])
-    print(f"DEBUG: Allowed roles for {module_name}: {allowed_roles}")
-    print(f"DEBUG: User role '{current_user.role}' in allowed roles: {current_user.role in allowed_roles}")
-    
-    base_access = current_user.role in allowed_roles
-    
-    print(f"DEBUG: Base access: {base_access}")
-    
-    # For admin users, also check user-specific permissions
-    if base_access and current_user.role == 'admin':
-        try:
-            if current_user.department:
-                user_permissions = json.loads(current_user.department)
-                if module_name in user_permissions and not user_permissions[module_name]:
-                    print(f"DEBUG: Admin user denied access to {module_name} by user-specific permissions")
-                    return False
-        except (json.JSONDecodeError, KeyError):
-            pass
-    
-    print(f"DEBUG: Final access result: {base_access}")
-    return base_access
-
-def require_module_access(module_name):
-    """Decorator to require module access"""
-    def decorator(f):
-        @login_required
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            if not check_module_access(module_name):
-                flash('Access denied. You do not have permission to access this module.', 'error')
-                return redirect(url_for('dashboard'))
-            return f(*args, **kwargs)
-        return decorated_function
-    return decorator
-
 def handle_route_errors(f):
     """Decorator to handle errors in route functions and send notifications"""
     @wraps(f)
@@ -207,8 +171,13 @@ def handle_route_errors(f):
             raise
     return decorated_function
 
+ERROR_NOTIFICATION_EMAIL = os.environ.get('ERROR_NOTIFICATION_EMAIL', '').strip()
+
+
 def send_error_notification(error_info):
-    """Send error notification email to admin"""
+    """Send error notification email to the platform operator (if configured)"""
+    if not ERROR_NOTIFICATION_EMAIL:
+        return False
     try:
         # Get email settings
         email_settings = EmailSettings.query.filter_by(is_active=True).first()
@@ -340,137 +309,79 @@ app.config.setdefault('MAX_CONTENT_LENGTH', 16 * 1024 * 1024)  # 16 MB upload li
 app.config.setdefault('SESSION_COOKIE_SAMESITE', 'Lax')
 app.config.setdefault('SESSION_COOKIE_HTTPONLY', True)
 
-db = SQLAlchemy(app)
-login_manager = LoginManager()
+app.config['WTF_CSRF_ENABLED'] = os.environ.get('CSRF_ENABLED', '1') != '0'
+app.config['WTF_CSRF_TIME_LIMIT'] = None      # token lives as long as the session
+csrf = CSRFProtect(app)
+db.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 login_manager.login_message_category = 'info'
 login_manager.session_protection = 'strong'  # Better session protection
 
-# Database Models
-class User(UserMixin, db.Model):
-    __tablename__ = 'users'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(120), nullable=False)
-    role = db.Column(db.String(20), default='user')  # 'super_admin', 'admin', 'user', 'it_agent', 'fm_agent'
-    department = db.Column(db.Text, nullable=True)  # Store module permissions as JSON string - changed to TEXT for larger storage
-    is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=utc_now)
-    
-    def set_password(self, password):
-        """Set password hash for user"""
-        self.password_hash = generate_password_hash(password)
-    
-    def check_password(self, password):
-        """Check password hash for user"""
-        return check_password_hash(self.password_hash, password)
-
-class Ticket(db.Model):
-    __tablename__ = 'tickets'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text, nullable=False)
-    category = db.Column(db.String(50), nullable=False)  # 'IT', 'FM'
-    priority = db.Column(db.String(20), default='Medium')  # 'Low', 'Medium', 'High', 'Critical'
-    status = db.Column(db.String(20), default='Open')  # 'Open', 'Assigned', 'In Progress', 'Resolved', 'Closed'
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    assigned_to = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    created_at = db.Column(db.DateTime, default=utc_now)
-    updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
-    
-    creator = db.relationship('User', foreign_keys=[created_by], backref='created_tickets')
-    assignee = db.relationship('User', foreign_keys=[assigned_to], backref='assigned_tickets')
-
-class UserActivityLog(db.Model):
-    """User activity logging model"""
-    __tablename__ = 'user_activity_logs'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    username = db.Column(db.String(80), nullable=False)
-    action = db.Column(db.String(100), nullable=False)  # 'login', 'logout', 'create_ticket', 'update_ticket', etc.
-    details = db.Column(db.Text, nullable=True)  # Additional details about the action
-    ip_address = db.Column(db.String(45), nullable=True)  # IPv4 or IPv6
-    user_agent = db.Column(db.Text, nullable=True)  # Browser/device info
-    timestamp = db.Column(db.DateTime, default=utc_now)
-    
-    user = db.relationship('User', backref='activity_logs')
-
-class Comment(db.Model):
-    __tablename__ = 'comments'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=utc_now)
-    
-    ticket = db.relationship('Ticket', backref='comments')
-    user = db.relationship('User', backref='comments')
-
-class EmailSettings(db.Model):
-    __tablename__ = 'email_settings'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    smtp_server = db.Column(db.String(100), nullable=False)
-    smtp_port = db.Column(db.Integer, nullable=False)
-    email_address = db.Column(db.String(120), nullable=False)
-    email_password = db.Column(db.String(120), nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=utc_now)
-    updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
-
-class EmailTemplate(db.Model):
-    __tablename__ = 'email_templates'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    template_type = db.Column(db.String(50), nullable=False, unique=True)  # 'ticket_created', 'comment_added', 'status_updated'
-    subject = db.Column(db.String(200), nullable=False)
-    body = db.Column(db.Text, nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=utc_now)
-    updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
-
-class SystemSettings(db.Model):
-    __tablename__ = 'system_settings'
-
-    id = db.Column(db.Integer, primary_key=True)
-    system_name = db.Column(db.String(100), nullable=False, default='Al Qeyam Helpdesk')
-    logo_filename = db.Column(db.String(200), nullable=True)
-    updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
-
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    try:
+        user = unscoped_get(User, int(user_id))
+    except (TypeError, ValueError):
+        return None
+    if not user or not user.is_active:
+        return None
+    if user.role != ROLE_SUPER_ADMIN:
+        # a deactivated school locks out all of its users immediately
+        school = db.session.get(School, user.school_id) if user.school_id else None
+        if not school or not school.is_active:
+            return None
+    return user
+
+
+class _PlatformBranding:
+    """Branding for pages that are not tied to a school."""
+    def __init__(self, settings=None):
+        self.system_name = (settings.system_name if settings else None) or 'Al Qeyam Helpdesk'
+        self.logo_filename = settings.logo_filename if settings else None
+
 
 @app.context_processor
 def inject_system_settings():
+    """Expose branding of the current school (or the platform) to every template."""
     try:
-        settings = SystemSettings.query.first()
-        if not settings:
-            settings = SystemSettings(system_name='Al Qeyam Helpdesk')
-        return {'system_settings': settings}
+        school = active_school()
+        if school:
+            branding = school
+            theme = build_theme(school.primary_color, school.secondary_color)
+        else:
+            branding = _PlatformBranding(SystemSettings.query.first())
+            theme = build_theme()
+        return {'system_settings': branding, 'current_school': school, 'theme': theme}
     except Exception:
-        class _Default:
-            system_name = 'Al Qeyam Helpdesk'
-            logo_filename = None
-        return {'system_settings': _Default()}
+        logger.exception('Failed to build branding context')
+        return {'system_settings': _PlatformBranding(), 'current_school': None, 'theme': build_theme()}
 
-# Ensure all tables exist regardless of how the app is started (dev server, gunicorn, etc.)
-def _init_db():
+
+def _bootstrap_platform():
+    """Create/upgrade schema, default settings and (first run only) the super admin."""
+    run_migrations(app)
     with app.app_context():
-        db.create_all()
         os.makedirs(LOGO_UPLOAD_FOLDER, exist_ok=True)
+        os.makedirs(SCHOOL_LOGO_FOLDER, exist_ok=True)
         if not SystemSettings.query.first():
             db.session.add(SystemSettings(system_name='Al Qeyam Helpdesk'))
             db.session.commit()
+        if not User.query.execution_options(tenant_bypass=True).first():
+            import secrets
+            password = os.environ.get('INITIAL_ADMIN_PASSWORD') or secrets.token_urlsafe(12)
+            admin = User(username='admin', email=os.environ.get('INITIAL_ADMIN_EMAIL', 'admin@helpdesk.local'),
+                         role=ROLE_SUPER_ADMIN, is_active=True,
+                         must_change_password=not os.environ.get('INITIAL_ADMIN_PASSWORD'))
+            admin.set_password(password)
+            db.session.add(admin)
+            db.session.commit()
+            logger.warning('First run: super admin "admin" created. Initial password: %s', password)
+            print(f'*** First run: super admin created -> username: admin  password: {password}')
 
-_init_db()
+
+_bootstrap_platform()
 
 def send_email_notification(to_email, subject, body):
     """Send email notification using configured SMTP settings"""
@@ -478,12 +389,12 @@ def send_email_notification(to_email, subject, body):
         # Get email settings
         email_settings = EmailSettings.query.filter_by(is_active=True).first()
         if not email_settings:
-            print("No email settings configured")
+            logger.debug("No email settings configured")
             return False
         
-        print(f"Attempting to send email to: {to_email}")
-        print(f"Using SMTP server: {email_settings.smtp_server}:{email_settings.smtp_port}")
-        print(f"From email: {email_settings.email_address}")
+        logger.debug(f"Attempting to send email to: {to_email}")
+        logger.debug(f"Using SMTP server: {email_settings.smtp_server}:{email_settings.smtp_port}")
+        logger.debug(f"From email: {email_settings.email_address}")
         
         # Create message
         msg = MIMEMultipart()
@@ -495,33 +406,33 @@ def send_email_notification(to_email, subject, body):
         msg.attach(MIMEText(body, 'html'))
         
         # Send email with better error handling
-        print("Connecting to SMTP server...")
+        logger.debug("Connecting to SMTP server...")
         server = smtplib.SMTP(email_settings.smtp_server, email_settings.smtp_port)
-        print("Starting TLS...")
+        logger.debug("Starting TLS...")
         server.starttls()
-        print("Logging in...")
+        logger.debug("Logging in...")
         server.login(email_settings.email_address, email_settings.email_password)
-        print("Sending email...")
+        logger.debug("Sending email...")
         text = msg.as_string()
         server.sendmail(email_settings.email_address, to_email, text)
-        print("Email sent successfully!")
+        logger.debug("Email sent successfully!")
         server.quit()
         
         return True
     except smtplib.SMTPAuthenticationError as e:
-        print(f"SMTP Authentication failed: {str(e)}")
-        print("Please check your email and password. For Gmail, you may need to use an App Password.")
+        logger.debug(f"SMTP Authentication failed: {str(e)}")
+        logger.debug("Please check your email and password. For Gmail, you may need to use an App Password.")
         return False
     except smtplib.SMTPConnectError as e:
-        print(f"SMTP Connection failed: {str(e)}")
-        print("Please check your SMTP server and port settings.")
+        logger.debug(f"SMTP Connection failed: {str(e)}")
+        logger.debug("Please check your SMTP server and port settings.")
         return False
     except smtplib.SMTPRecipientsRefused as e:
-        print(f"Recipient email rejected: {str(e)}")
+        logger.debug(f"Recipient email rejected: {str(e)}")
         return False
     except Exception as e:
-        print(f"Email sending failed: {str(e)}")
-        print(f"Error type: {type(e).__name__}")
+        logger.debug(f"Email sending failed: {str(e)}")
+        logger.debug(f"Error type: {type(e).__name__}")
         return False
 
 def get_email_template(template_type):
@@ -533,13 +444,15 @@ def send_templated_email(to_email, template_type, **kwargs):
     """Send email using template with variable substitution"""
     template = get_email_template(template_type)
     if not template:
-        print(f"No template found for type: {template_type}")
+        logger.debug(f"No template found for type: {template_type}")
         return False
     
     # Replace placeholders in subject and body
     subject = template.subject
     body = template.body
     
+    school = active_school()
+    kwargs.setdefault('school_name', school.system_name if school else 'Helpdesk')
     for key, value in kwargs.items():
         placeholder = f"{{{key}}}"
         subject = subject.replace(placeholder, str(value))
@@ -553,12 +466,12 @@ def send_email_with_attachment(to_email, subject, body, attachment_file, filenam
         # Get email settings
         email_settings = EmailSettings.query.filter_by(is_active=True).first()
         if not email_settings:
-            print("No email settings configured")
+            logger.debug("No email settings configured")
             return False
         
-        print(f"Attempting to send email with attachment to: {to_email}")
-        print(f"Using SMTP server: {email_settings.smtp_server}:{email_settings.smtp_port}")
-        print(f"From email: {email_settings.email_address}")
+        logger.debug(f"Attempting to send email with attachment to: {to_email}")
+        logger.debug(f"Using SMTP server: {email_settings.smtp_server}:{email_settings.smtp_port}")
+        logger.debug(f"From email: {email_settings.email_address}")
         
         # Create message
         msg = MIMEMultipart()
@@ -577,33 +490,33 @@ def send_email_with_attachment(to_email, subject, body, attachment_file, filenam
         msg.attach(attachment)
         
         # Send email with better error handling
-        print("Connecting to SMTP server...")
+        logger.debug("Connecting to SMTP server...")
         server = smtplib.SMTP(email_settings.smtp_server, email_settings.smtp_port)
-        print("Starting TLS...")
+        logger.debug("Starting TLS...")
         server.starttls()
-        print("Logging in...")
+        logger.debug("Logging in...")
         server.login(email_settings.email_address, email_settings.email_password)
-        print("Sending email with attachment...")
+        logger.debug("Sending email with attachment...")
         text = msg.as_string()
         server.sendmail(email_settings.email_address, to_email, text)
-        print("Email with attachment sent successfully!")
+        logger.debug("Email with attachment sent successfully!")
         server.quit()
         
         return True
     except smtplib.SMTPAuthenticationError as e:
-        print(f"SMTP Authentication failed: {str(e)}")
-        print("Please check your email and password. For Gmail, you may need to use an App Password.")
+        logger.debug(f"SMTP Authentication failed: {str(e)}")
+        logger.debug("Please check your email and password. For Gmail, you may need to use an App Password.")
         return False
     except smtplib.SMTPConnectError as e:
-        print(f"SMTP Connection failed: {str(e)}")
-        print("Please check your SMTP server and port settings.")
+        logger.debug(f"SMTP Connection failed: {str(e)}")
+        logger.debug("Please check your SMTP server and port settings.")
         return False
     except smtplib.SMTPRecipientsRefused as e:
-        print(f"Recipient email rejected: {str(e)}")
+        logger.debug(f"Recipient email rejected: {str(e)}")
         return False
     except Exception as e:
-        print(f"Email sending failed: {str(e)}")
-        print(f"Error type: {type(e).__name__}")
+        logger.debug(f"Email sending failed: {str(e)}")
+        logger.debug(f"Error type: {type(e).__name__}")
         return False
 
 def get_all_tickets_from_all_dbs():
@@ -613,14 +526,14 @@ def get_all_tickets_from_all_dbs():
         tickets = Ticket.query.all()
         return tickets
     except Exception as e:
-        print(f"Error reading tickets from database: {str(e)}")
+        logger.debug(f"Error reading tickets from database: {str(e)}")
         return []
 
 def send_comprehensive_notifications(ticket, action_type, **kwargs):
     """Send comprehensive notifications to all stakeholders: user, admin, and assigned agent"""
     try:
         # Get all admin users for notifications
-        admin_users = User.query.filter(User.role.in_(['admin', 'super_admin'])).all()
+        admin_users = User.query.filter(User.role == ROLE_ADMIN, User.is_active == True).all()
         
         # Get ticket creator
         creator = User.query.get(ticket.created_by)
@@ -827,7 +740,7 @@ def send_comprehensive_notifications(ticket, action_type, **kwargs):
         return True
         
     except Exception as e:
-        print(f"Error sending comprehensive notifications: {str(e)}")
+        logger.debug(f"Error sending comprehensive notifications: {str(e)}")
         return False
 
 def assign_ticket_round_robin(category):
@@ -858,7 +771,9 @@ def assign_ticket_round_robin(category):
         logger.info(f"Round-robin assignment for {category}: Found {len(agents)} active agents")
         
         # Get the last assigned ticket for this category
-        last_assigned_ticket = Ticket.query.filter_by(category=category).order_by(Ticket.created_at.desc()).first()
+        last_assigned_ticket = Ticket.query.filter(
+            Ticket.category == category, Ticket.assigned_to.isnot(None), Ticket.external_ref.is_(None)
+        ).order_by(Ticket.id.desc()).first()
         
         if not last_assigned_ticket or not last_assigned_ticket.assigned_to:
             # First ticket for this category, assign to first agent
@@ -908,9 +823,8 @@ def log_user_activity(user_id, username, action, details=None, ip_address=None, 
         db.session.add(log_entry)
         db.session.commit()
     except Exception as e:
-        print(f"Error logging user activity: {str(e)}")
-        # Don't fail the main operation if logging fails
-        pass
+        db.session.rollback()
+        logger.warning(f"Error logging user activity: {str(e)}")  # never fail the main operation
 
 def get_all_users_from_all_dbs():
     """Get all users from current database"""
@@ -919,7 +833,7 @@ def get_all_users_from_all_dbs():
         users = User.query.all()
         return users
     except Exception as e:
-        print(f"Error reading users from database: {str(e)}")
+        logger.debug(f"Error reading users from database: {str(e)}")
         return []
 
 def search_tickets(query, category=None, status=None, priority=None):
@@ -982,78 +896,179 @@ def search_users(query, role=None, department=None, is_active=None):
     
     return filtered_users
 
-# Routes
+# ---------------------------------------------------------------- authentication
+_FAILED_LOGINS = {}          # (ip, identifier) -> [timestamps]; per-process brute-force throttle
+_FAILED_LOCK = threading.Lock()
+LOGIN_MAX_ATTEMPTS = 8
+LOGIN_WINDOW_SECONDS = 15 * 60
+MIN_PASSWORD_LENGTH = 8
+
+
+def _throttle_key(identifier):
+    return (request.remote_addr or '-', (identifier or '').lower())
+
+
+def _login_blocked(identifier):
+    now = time.time()
+    with _FAILED_LOCK:
+        key = _throttle_key(identifier)
+        attempts = [t for t in _FAILED_LOGINS.get(key, []) if now - t < LOGIN_WINDOW_SECONDS]
+        _FAILED_LOGINS[key] = attempts
+        return len(attempts) >= LOGIN_MAX_ATTEMPTS
+
+
+def _record_failed_login(identifier):
+    with _FAILED_LOCK:
+        _FAILED_LOGINS.setdefault(_throttle_key(identifier), []).append(time.time())
+
+
+def _clear_failed_logins(identifier):
+    with _FAILED_LOCK:
+        _FAILED_LOGINS.pop(_throttle_key(identifier), None)
+
+
+def home_for(user):
+    """Landing page for a user after login."""
+    if user.role == ROLE_SUPER_ADMIN:
+        return url_for('admin_dashboard') if session.get('active_school_id') else url_for('tenant.platform_dashboard')
+    if user.role == ROLE_ADMIN:
+        return url_for('admin_dashboard')
+    if user.role in AGENT_ROLES:
+        return url_for('agent_dashboard')
+    return url_for('user_dashboard')
+
+
+def _safe_next(target):
+    """Only follow same-site relative redirects (prevents open-redirect abuse)."""
+    if target and target.startswith('/') and not target.startswith('//') and '\\' not in target:
+        return target
+    return None
+
+
+def _authenticate(identifier, password, school=None):
+    """Return (user, error_message). Never reveals which part of the credentials was wrong."""
+    generic = 'Invalid username or password.'
+    if not identifier or not password:
+        return None, generic
+    ident = identifier.strip()
+    user = (User.query.execution_options(tenant_bypass=True)
+            .filter(db.or_(User.username == ident, db.func.lower(User.email) == ident.lower())).first())
+    if not user or not user.check_password(password):
+        return None, generic
+    if not user.is_active:
+        return None, 'This account has been deactivated. Please contact your administrator.'
+    if user.role != ROLE_SUPER_ADMIN:
+        user_school = db.session.get(School, user.school_id) if user.school_id else None
+        if not user_school:
+            return None, 'This account is not assigned to a school. Please contact your administrator.'
+        if not user_school.is_active:
+            return None, 'Your school account is currently suspended. Please contact the administrator.'
+        if school is not None and user.school_id != school.id:
+            return None, generic          # do not reveal the account exists in another school
+    return user, None
+
+
+def _login_view(school=None):
+    if current_user.is_authenticated:
+        return redirect(home_for(current_user))
+    if school is not None:
+        if not school.is_active:
+            return render_template('login.html', school=school, suspended=True), 403
+        session['login_school_id'] = school.id
+    else:
+        session.pop('login_school_id', None)
+
+    if request.method == 'POST':
+        identifier = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        if _login_blocked(identifier):
+            flash('Too many failed attempts. Please wait a few minutes and try again.', 'error')
+            return render_template('login.html', school=school), 429
+        user, error = _authenticate(identifier, password, school)
+        if error:
+            _record_failed_login(identifier)
+            flash(error, 'error')
+            return render_template('login.html', school=school), 401
+        _clear_failed_logins(identifier)
+        session.clear()
+        login_user(user, remember=False)
+        session.permanent = True
+        if user.role != ROLE_SUPER_ADMIN:
+            session['login_school_id'] = user.school_id
+        log_user_activity(user_id=user.id, username=user.username, action='login',
+                          details='User logged in successfully', ip_address=request.remote_addr,
+                          user_agent=request.headers.get('User-Agent'))
+        if user.must_change_password:
+            return redirect(url_for('change_password'))
+        return redirect(_safe_next(request.args.get('next')) or home_for(user))
+    return render_template('login.html', school=school)
+
+
 @app.route('/')
 def index():
-    # Prevent redirect loops by checking if user is already authenticated
     if current_user.is_authenticated:
-        # Check if user is trying to access root while already logged in
-        # This prevents the redirect loop issue
-        user_role = current_user.role
-        if user_role in ['super_admin', 'admin']:
-            return redirect(url_for('admin_dashboard'))
-        elif user_role in ['it_agent', 'fm_agent']:
-            return redirect(url_for('agent_dashboard'))
-        else:
-            return redirect(url_for('user_dashboard'))
-    
-    # User not authenticated, show login page
+        return redirect(home_for(current_user))
     return render_template('index.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        user = User.query.filter_by(username=username).first()
-        
-        if user and check_password_hash(user.password_hash, password) and user.is_active:
-            login_user(user, remember=True)  # Make session permanent
-            session.permanent = True  # Ensure session is permanent
-            
-            # Log user login activity
-            log_user_activity(
-                user_id=user.id,
-                username=user.username,
-                action='login',
-                details=f'User logged in successfully',
-                ip_address=request.remote_addr,
-                user_agent=request.headers.get('User-Agent')
-            )
-            
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid username or password')
-    
-    return render_template('login.html')
+    return _login_view()
+
+
+@app.route('/s/<slug>', methods=['GET', 'POST'])
+@app.route('/s/<slug>/login', methods=['GET', 'POST'])
+def school_login(slug):
+    """School-branded sign-in page (each school can share its own link)."""
+    school = School.query.filter_by(slug=slug.lower()).first_or_404()
+    return _login_view(school)
+
 
 @app.route('/logout')
 @login_required
 def logout():
-    # Log user logout activity
+    school_id = current_user.school_id
     log_user_activity(
-        user_id=current_user.id,
-        username=current_user.username,
-        action='logout',
-        details=f'User logged out',
-        ip_address=request.remote_addr,
-        user_agent=request.headers.get('User-Agent')
-    )
-    
+        user_id=current_user.id, username=current_user.username, action='logout',
+        details='User logged out', ip_address=request.remote_addr,
+        user_agent=request.headers.get('User-Agent'))
     logout_user()
+    session.clear()
+    school = db.session.get(School, school_id) if school_id else None
+    if school:
+        return redirect(url_for('school_login', slug=school.slug))
     return redirect(url_for('index'))
+
+
+@app.route('/account/password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        current = request.form.get('current_password', '')
+        new = request.form.get('new_password', '')
+        confirm = request.form.get('confirm_password', '')
+        if not current_user.check_password(current):
+            flash('Current password is incorrect.', 'error')
+        elif len(new) < MIN_PASSWORD_LENGTH:
+            flash(f'New password must be at least {MIN_PASSWORD_LENGTH} characters.', 'error')
+        elif new != confirm:
+            flash('New passwords do not match.', 'error')
+        elif new == current:
+            flash('New password must be different from the current one.', 'error')
+        else:
+            current_user.set_password(new)
+            current_user.must_change_password = False
+            db.session.commit()
+            flash('Password changed successfully.', 'success')
+            return redirect(home_for(current_user))
+    return render_template('change_password.html')
+
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    if current_user.role == 'super_admin':
-        return redirect(url_for('admin_dashboard'))
-    elif current_user.role == 'admin':
-        return redirect(url_for('admin_dashboard'))
-    elif current_user.role in ['it_agent', 'fm_agent']:
-        return redirect(url_for('agent_dashboard'))
-    else:
-        return redirect(url_for('user_dashboard'))
+    return redirect(home_for(current_user))
+
 
 @app.route('/user/dashboard')
 @login_required
@@ -1061,56 +1076,34 @@ def user_dashboard():
     tickets = Ticket.query.filter_by(created_by=current_user.id).order_by(Ticket.created_at.desc()).all()
     return render_template('user_dashboard.html', tickets=tickets)
 
+
+def _agents_of(role):
+    return User.query.filter_by(role=role, is_active=True).order_by(User.username).all()
+
+
 @app.route('/admin/dashboard')
+@admin_required
 def admin_dashboard():
-    """Admin dashboard with comprehensive statistics"""
+    """School admin dashboard (super admins see the school they have entered)."""
     try:
-        # Get all tickets for admin view
         tickets = Ticket.query.order_by(Ticket.created_at.desc()).all()
-        
-        # Get agents for assignment
-        it_agents = User.query.filter(
-            db.or_(
-                db.and_(User.department == 'IT', User.role == 'agent'),
-                db.and_(User.role == 'it_agent', User.department.is_(None)),
-                db.and_(User.role == 'it_agent', User.department == 'IT')
-            )
-        ).all()
-        
-        fm_agents = User.query.filter(
-            db.or_(
-                db.and_(User.department == 'FM', User.role == 'agent'),
-                db.and_(User.role == 'fm_agent', User.department.is_(None)),
-                db.and_(User.role == 'fm_agent', User.department == 'Handyman'),
-                db.and_(User.role == 'fm_agent', User.department == 'FM')
-            )
-        ).all()
-        
-        hse_agents = User.query.filter(
-            db.or_(
-                db.and_(User.department == 'HSE', User.role == 'agent'),
-                db.and_(User.role == 'hse_agent', User.department.is_(None)),
-                db.and_(User.role == 'hse_agent', User.department == 'HSE')
-            )
-        ).all()
-        
-        return render_template('admin_dashboard.html', 
-                             tickets=tickets, 
-                             it_agents=it_agents, 
-                             fm_agents=fm_agents,
-                             hse_agents=hse_agents)
-                             
+        return render_template('admin_dashboard.html',
+                               tickets=tickets,
+                               it_agents=_agents_of('it_agent'),
+                               fm_agents=_agents_of('fm_agent'),
+                               hse_agents=_agents_of('hse_agent'))
     except Exception as e:
-        flash(f'Error loading admin dashboard: {str(e)}', 'error')
+        logger.exception('Error loading admin dashboard')
+        flash('Error loading the dashboard. Please try again.', 'error')
         return render_template('error.html', error=str(e))
+
 
 @app.route('/agent/dashboard')
 @login_required
 def agent_dashboard():
-    if current_user.role not in ['it_agent', 'fm_agent', 'admin', 'super_admin']:
-        flash('Access denied')
+    if current_user.role not in AGENT_ROLES + ADMIN_ROLES:
+        flash('Access denied', 'error')
         return redirect(url_for('dashboard'))
-    
     assigned_tickets = Ticket.query.filter_by(assigned_to=current_user.id).order_by(Ticket.created_at.desc()).all()
     return render_template('agent_dashboard.html', tickets=assigned_tickets)
 
@@ -1118,11 +1111,20 @@ def agent_dashboard():
 @login_required
 def create_ticket():
     if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
-        category = request.form['category']
-        priority = request.form['priority']
-        
+        title = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        category = request.form.get('category', '')
+        priority = request.form.get('priority', 'Medium')
+        if not title or not description:
+            flash('Title and description are required.', 'error')
+            return render_template('create_ticket.html'), 400
+        if len(title) > 200:
+            flash('Title must be 200 characters or fewer.', 'error')
+            return render_template('create_ticket.html'), 400
+        if category not in CATEGORIES or priority not in PRIORITIES:
+            flash('Please choose a valid category and priority.', 'error')
+            return render_template('create_ticket.html'), 400
+
         ticket = Ticket(
             title=title,
             description=description,
@@ -1135,7 +1137,8 @@ def create_ticket():
         assigned_agent = assign_ticket_round_robin(category)
         if assigned_agent:
             ticket.assigned_to = assigned_agent.id
-        
+            ticket.status = 'Assigned'
+
         db.session.add(ticket)
         db.session.commit()
         
@@ -1160,68 +1163,23 @@ def create_ticket():
 @app.route('/ticket/<int:ticket_id>')
 @login_required
 def view_ticket(ticket_id):
-    try:
-        ticket = Ticket.query.get_or_404(ticket_id)
-        
-        # Check if user has access to this ticket
-        if current_user.role not in ['admin', 'super_admin', 'it_agent', 'fm_agent'] and ticket.created_by != current_user.id:
-            flash('Access denied')
-            return redirect(url_for('dashboard'))
-        
-        # Get agents for assignment (only for admin/super_admin)
-        it_agents = []
-        fm_agents = []
-        hse_agents = []
-        if current_user.role in ['admin', 'super_admin']:
-            it_agents = User.query.filter_by(role='it_agent', is_active=True).all()
-            fm_agents = User.query.filter_by(role='fm_agent', is_active=True).all()
-            hse_agents = User.query.filter_by(role='hse_agent', is_active=True).all()
-        
-        # Debug logging
-        logger.info(f"Viewing ticket {ticket_id} for user {current_user.username} (role: {current_user.role})")
-        logger.info(f"Ticket creator: {ticket.created_by}, Assigned to: {ticket.assigned_to}")
-        
-        # Additional debug info
-        logger.info(f"Ticket title: {ticket.title}")
-        logger.info(f"Ticket status: {ticket.status}")
-        logger.info(f"Ticket category: {ticket.category}")
-        logger.info(f"Ticket priority: {ticket.priority}")
-        logger.info(f"Agents available - IT: {len(it_agents)}, FM: {len(fm_agents)}, HSE: {len(hse_agents)}")
-        
-        # Ensure assignee is loaded if assigned_to exists but assignee is None
-        if ticket.assigned_to and not ticket.assignee:
-            try:
-                ticket.assignee = User.query.get(ticket.assigned_to)
-                if ticket.assignee:
-                    logger.debug(f'Manually loaded assignee for ticket {ticket_id}: {ticket.assignee.username}')
-            except Exception as assignee_error:
-                logger.warning(f'Could not load assignee for ticket {ticket_id}: {str(assignee_error)}')
-        
-        # Check relationships
-        if hasattr(ticket, 'creator') and ticket.creator:
-            logger.info(f"Creator username: {ticket.creator.username}")
-        else:
-            logger.warning(f"Ticket {ticket_id} has no creator relationship")
-            
-        if hasattr(ticket, 'assignee') and ticket.assignee:
-            logger.info(f"Assignee username: {ticket.assignee.username}")
-        else:
-            logger.info(f"Ticket {ticket_id} has no assignee")
-        
-        return render_template('view_ticket.html', ticket=ticket, it_agents=it_agents, fm_agents=fm_agents, hse_agents=hse_agents)
-        
-    except Exception as e:
-        logger.error(f"Error viewing ticket {ticket_id}: {str(e)}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        flash(f'Error loading ticket: {str(e)}', 'error')
-        return render_template('error.html', error=str(e))
+    ticket = Ticket.query.get_or_404(ticket_id)
+    if not can_access_ticket(ticket):
+        flash('Access denied', 'error')
+        return redirect(url_for('dashboard'))
+    # Only the school's own admins assign; agent lists are already limited to this school
+    it_agents = fm_agents = hse_agents = []
+    if current_user.role in ADMIN_ROLES:
+        it_agents, fm_agents, hse_agents = (_agents_of('it_agent'), _agents_of('fm_agent'), _agents_of('hse_agent'))
+    return render_template('view_ticket.html', ticket=ticket, it_agents=it_agents,
+                           fm_agents=fm_agents, hse_agents=hse_agents)
 
 @app.route('/ticket/<int:ticket_id>/assign', methods=['POST'])
 @login_required
 def assign_ticket(ticket_id):
     """Assign or reassign ticket to an agent"""
     try:
-        if current_user.role not in ['admin', 'super_admin']:
+        if current_user.role not in ADMIN_ROLES:
             flash('Access denied. Only administrators can assign tickets.', 'error')
             return redirect(url_for('view_ticket', ticket_id=ticket_id))
         
@@ -1235,8 +1193,11 @@ def assign_ticket(ticket_id):
             flash('Ticket unassigned successfully.', 'success')
         else:
             # Assign ticket to agent
-            agent = User.query.get(agent_id)
-            if not agent or agent.role not in ['it_agent', 'fm_agent', 'hse_agent']:
+            try:
+                agent = User.query.get(int(agent_id))
+            except (TypeError, ValueError):
+                agent = None
+            if not agent or agent.role not in AGENT_ROLES:
                 flash('Invalid agent selected.', 'error')
                 return redirect(url_for('view_ticket', ticket_id=ticket_id))
             
@@ -1281,6 +1242,8 @@ def assign_ticket(ticket_id):
         
         return redirect(url_for('view_ticket', ticket_id=ticket_id))
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error assigning ticket {ticket_id}: {str(e)}")
         logger.error(f"Traceback: {traceback.format_exc()}")
@@ -1293,12 +1256,14 @@ def add_comment(ticket_id):
     try:
         ticket = Ticket.query.get_or_404(ticket_id)
         
-        # Check if user has access to this ticket
-        if current_user.role not in ['admin', 'super_admin', 'it_agent', 'fm_agent'] and ticket.created_by != current_user.id:
-            flash('Access denied')
+        if not can_access_ticket(ticket):
+            flash('Access denied', 'error')
             return redirect(url_for('dashboard'))
-        
-        content = request.form['content']
+
+        content = request.form.get('content', '').strip()
+        if not content:
+            flash('Comment cannot be empty.', 'error')
+            return redirect(url_for('view_ticket', ticket_id=ticket_id))
         comment = Comment(
             ticket_id=ticket_id,
             user_id=current_user.id,
@@ -1331,6 +1296,8 @@ def add_comment(ticket_id):
         flash('Comment added successfully!', 'success')
         return redirect(url_for('view_ticket', ticket_id=ticket_id))
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error adding comment to ticket {ticket_id}: {str(e)}")
         logger.error(f"Traceback: {traceback.format_exc()}")
@@ -1345,12 +1312,12 @@ def update_ticket_status(ticket_id):
         ticket = Ticket.query.get_or_404(ticket_id)
         
         # Check if user has access to update this ticket
-        if current_user.role not in ['admin', 'super_admin', 'it_agent', 'fm_agent']:
+        if current_user.role not in (ADMIN_ROLES + AGENT_ROLES):
             flash('Access denied. Only agents and administrators can update ticket status.', 'error')
             return redirect(url_for('view_ticket', ticket_id=ticket_id))
         
         # Check if user is assigned to this ticket or is admin
-        if current_user.role not in ['admin', 'super_admin'] and ticket.assigned_to != current_user.id:
+        if current_user.role not in ADMIN_ROLES and ticket.assigned_to != current_user.id:
             flash('Access denied. You can only update tickets assigned to you.', 'error')
             return redirect(url_for('view_ticket', ticket_id=ticket_id))
         
@@ -1396,17 +1363,13 @@ def update_ticket_status(ticket_id):
         flash(f'Ticket status updated to {new_status} successfully!', 'success')
         return redirect(url_for('view_ticket', ticket_id=ticket_id))
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error updating ticket {ticket_id} status: {str(e)}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         flash(f'Error updating ticket status: {str(e)}', 'error')
         return redirect(url_for('view_ticket', ticket_id=ticket_id))
-
-@app.route('/admin/users')
-@require_module_access('user_management')
-def admin_users():
-    users = User.query.all()
-    return render_template('admin_users.html', users=users)
 
 @app.route('/admin/tickets')
 @require_module_access('ticket_management')
@@ -1429,16 +1392,16 @@ def admin_tickets():
         logger.info(f'All request.args: {dict(request.args)}')
         logger.info(f'Status filter (raw): "{status_filter}"')
         logger.info(f'Category filter: "{category_filter}", Priority: "{priority_filter}"')
-        print(f'=== FILTER DEBUG ===')
-        print(f'Status filter: "{status_filter}"')
-        print(f'Category filter: "{category_filter}"')
-        print(f'Priority filter: "{priority_filter}"')
+        logger.debug(f'=== FILTER DEBUG ===')
+        logger.debug(f'Status filter: "{status_filter}"')
+        logger.debug(f'Category filter: "{category_filter}"')
+        logger.debug(f'Priority filter: "{priority_filter}"')
         
         # Start with base query
         query = Ticket.query
         total_before_filter = query.count()
         logger.info(f'Total tickets before filter: {total_before_filter}')
-        print(f'Total tickets before filter: {total_before_filter}')
+        logger.debug(f'Total tickets before filter: {total_before_filter}')
         
         # Apply status filter - each filter is independent
         if status_filter:
@@ -1446,11 +1409,11 @@ def admin_tickets():
             # The status_filter should already be decoded by Flask, but handle edge cases
             query = query.filter(Ticket.status == status_filter)
             logger.info(f'Applied status filter: "{status_filter}"')
-            print(f'Applied status filter: "{status_filter}"')
+            logger.debug(f'Applied status filter: "{status_filter}"')
             # Verify the filter by checking count
             count_after_status = query.count()
             logger.info(f'Count after status filter: {count_after_status}')
-            print(f'Count after status filter: {count_after_status}')
+            logger.debug(f'Count after status filter: {count_after_status}')
         
         # Apply category filter
         if category_filter:
@@ -1525,7 +1488,7 @@ def admin_tickets():
         # Get count before executing (for debugging)
         filtered_count = query.count()
         logger.info(f'Final filtered ticket count: {filtered_count}')
-        print(f'Final filtered ticket count: {filtered_count}')
+        logger.debug(f'Final filtered ticket count: {filtered_count}')
         
         # Get filtered tickets - execute query explicitly
         try:
@@ -1552,27 +1515,27 @@ def admin_tickets():
                         logger.warning(f'Could not load assignee for ticket {ticket.id}: {str(assignee_error)}')
             
             logger.info(f'Retrieved {len(tickets)} tickets after filtering')
-            print(f'Retrieved {len(tickets)} tickets after filtering')
+            logger.debug(f'Retrieved {len(tickets)} tickets after filtering')
             
             # Verify first few ticket statuses if filtering
             if status_filter and tickets:
                 first_few_statuses = [t.status for t in tickets[:5]]
                 logger.info(f'First 5 ticket statuses: {first_few_statuses}')
-                print(f'First 5 ticket statuses: {first_few_statuses}')
+                logger.debug(f'First 5 ticket statuses: {first_few_statuses}')
                 # Compare with the status_filter (Flask already decoded it)
                 wrong_statuses = [s for s in first_few_statuses if s != status_filter]
                 if wrong_statuses:
                     logger.warning(f'WARNING: Some tickets have wrong status! Expected: "{status_filter}", Got: {wrong_statuses}')
-                    print(f'WARNING: Some tickets have wrong status! Expected: "{status_filter}", Got: {wrong_statuses}')
+                    logger.debug(f'WARNING: Some tickets have wrong status! Expected: "{status_filter}", Got: {wrong_statuses}')
                 else:
                     logger.info(f'✓ All ticket statuses match filter: {status_filter}')
-                    print(f'✓ All ticket statuses match filter: {status_filter}')
+                    logger.debug(f'✓ All ticket statuses match filter: {status_filter}')
         except Exception as query_error:
             logger.error(f'Error executing query: {str(query_error)}')
-            print(f'Error executing query: {str(query_error)}')
+            logger.debug(f'Error executing query: {str(query_error)}')
             import traceback
             logger.error(traceback.format_exc())
-            print(traceback.format_exc())
+            logger.debug(traceback.format_exc())
             # Fallback to unfiltered query
             tickets = Ticket.query.order_by(Ticket.created_at.desc()).limit(50).all()
         
@@ -1707,6 +1670,7 @@ def admin_closed_tickets():
 
 @app.route('/admin/system_management')
 @require_module_access('system_management')
+@platform_scope
 def admin_system_management():
     """System management page with comprehensive system information and monitoring"""
     try:
@@ -1761,7 +1725,8 @@ def admin_system_management():
             'total_tickets': Ticket.query.count(),
             'active_tickets': Ticket.query.filter(Ticket.status.in_(['Open', 'Assigned', 'In Progress'])).count(),
             'resolved_tickets': Ticket.query.filter(Ticket.status.in_(['Resolved', 'Closed'])).count(),
-            'total_comments': Comment.query.count() if hasattr(app, 'Comment') else 0,
+            'total_comments': Comment.query.count(),
+            'total_schools': School.query.count(),
             'database_size': 'N/A'  # Will be calculated if possible
         }
         
@@ -1769,13 +1734,13 @@ def admin_system_management():
         recent_activities = []
         try:
             # Get recent user activities (last 10)
-            recent_logs = UserActivityLog.query.order_by(UserActivityLog.created_at.desc()).limit(10).all()
+            recent_logs = UserActivityLog.query.order_by(UserActivityLog.timestamp.desc()).limit(10).all()
             for log in recent_logs:
                 recent_activities.append({
                     'type': 'user_activity',
                     'description': log.details,
                     'user': log.username,
-                    'timestamp': log.created_at,
+                    'timestamp': log.timestamp,
                     'ip_address': log.ip_address
                 })
         except:
@@ -1895,149 +1860,6 @@ def admin_database_management():
 @require_module_access('backup_restore')
 def admin_backup_restore():
     return render_template('admin_backup_restore.html')
-
-@app.route('/admin/agent_management')
-@require_module_access('agent_management')
-def admin_agent_management():
-    """Enhanced agent management with comprehensive statistics and round-robin tracking"""
-    try:
-        # Get all agents by category
-        it_agents = User.query.filter_by(role='it_agent', is_active=True).all()
-        fm_agents = User.query.filter_by(role='fm_agent', is_active=True).all()
-        hse_agents = User.query.filter_by(role='hse_agent', is_active=True).all()
-        
-        # Get inactive agents
-        inactive_it_agents = User.query.filter_by(role='it_agent', is_active=False).all()
-        inactive_fm_agents = User.query.filter_by(role='fm_agent', is_active=False).all()
-        inactive_hse_agents = User.query.filter_by(role='hse_agent', is_active=False).all()
-        
-        # Enhance agents with statistics
-        def enhance_agent_with_stats(agent):
-            """Add statistics directly to agent object for template compatibility"""
-            # Count assigned tickets
-            agent.assigned_tickets_count = Ticket.query.filter_by(assigned_to=agent.id).count()
-            
-            # Get last assignment date
-            last_assignment = Ticket.query.filter_by(assigned_to=agent.id).order_by(Ticket.created_at.desc()).first()
-            agent.last_assignment = last_assignment.created_at if last_assignment else None
-            
-            # Count active tickets (Open, Assigned, In Progress)
-            agent.active_tickets_count = Ticket.query.filter(
-                Ticket.assigned_to == agent.id,
-                Ticket.status.in_(['Open', 'Assigned', 'In Progress'])
-            ).count()
-            
-            # Count resolved tickets
-            agent.resolved_tickets_count = Ticket.query.filter(
-                Ticket.assigned_to == agent.id,
-                Ticket.status.in_(['Resolved', 'Closed'])
-            ).count()
-            
-            # Calculate average resolution time
-            resolved_tickets_with_time = Ticket.query.filter(
-                Ticket.assigned_to == agent.id,
-                Ticket.status.in_(['Resolved', 'Closed']),
-                Ticket.updated_at.isnot(None)
-            ).all()
-            
-            total_resolution_time = 0
-            count_with_time = 0
-            for ticket in resolved_tickets_with_time:
-                if ticket.created_at and ticket.updated_at:
-                    resolution_time = (ticket.updated_at - ticket.created_at).total_seconds() / 3600  # hours
-                    total_resolution_time += resolution_time
-                    count_with_time += 1
-            
-            agent.avg_resolution_time = total_resolution_time / count_with_time if count_with_time > 0 else 0
-            
-            return agent
-        
-        # Enhance all agents with statistics
-        it_agents = [enhance_agent_with_stats(agent) for agent in it_agents]
-        fm_agents = [enhance_agent_with_stats(agent) for agent in fm_agents]
-        hse_agents = [enhance_agent_with_stats(agent) for agent in hse_agents]
-        
-        # Get round-robin assignment info
-        def get_round_robin_info(category):
-            """Get round-robin assignment information for a category"""
-            if category == 'IT':
-                agents = it_agents
-            elif category == 'FM':
-                agents = fm_agents
-            elif category == 'HSE':
-                agents = hse_agents
-            else:
-                return None
-            
-            if not agents:
-                return None
-            
-            # Get the last assigned ticket for this category
-            last_assigned_ticket = Ticket.query.filter_by(category=category).order_by(Ticket.created_at.desc()).first()
-            
-            if not last_assigned_ticket or not last_assigned_ticket.assigned_to:
-                return {
-                    'next_agent': agents[0].username if agents else 'None',
-                    'last_assigned': 'None',
-                    'rotation_order': [agent.username for agent in agents]
-                }
-            
-            # Find the last assigned agent
-            last_agent_id = last_assigned_ticket.assigned_to
-            last_agent_index = -1
-            
-            for i, agent in enumerate(agents):
-                if agent.id == last_agent_id:
-                    last_agent_index = i
-                    break
-            
-            # If last agent is not in active list, start from first
-            if last_agent_index == -1:
-                next_agent_index = 0
-            else:
-                next_agent_index = (last_agent_index + 1) % len(agents)
-            
-            return {
-                'next_agent': agents[next_agent_index].username if agents else 'None',
-                'last_assigned': agents[last_agent_index].username if last_agent_index >= 0 else 'None',
-                'rotation_order': [agent.username for agent in agents]
-            }
-        
-        round_robin_info = {
-            'IT': get_round_robin_info('IT'),
-            'FM': get_round_robin_info('FM'),
-            'HSE': get_round_robin_info('HSE')
-        }
-        
-        # Calculate totals for template
-        total_agents = len(it_agents) + len(fm_agents) + len(hse_agents)
-        total_active = len(it_agents) + len(fm_agents) + len(hse_agents)
-        it_agents_active = len(it_agents)
-        fm_agents_active = len(fm_agents)
-        hse_agents_active = len(hse_agents)
-        
-        return render_template('admin_agent_management.html', 
-                             it_agents=it_agents,
-                             fm_agents=fm_agents,
-                             hse_agents=hse_agents,
-                             inactive_it_agents=inactive_it_agents,
-                             inactive_fm_agents=inactive_fm_agents,
-                             inactive_hse_agents=inactive_hse_agents,
-                             round_robin_info=round_robin_info,
-                             total_agents=total_agents,
-                             total_active=total_active,
-                             it_agents_active=it_agents_active,
-                             fm_agents_active=fm_agents_active,
-                             hse_agents_active=hse_agents_active)
-                             
-    except Exception as e:
-        logger.error(f"Error loading agent management: {str(e)}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        flash(f'Error loading agent management: {str(e)}', 'error')
-        return render_template('error.html', error=str(e))
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        flash(f'Error loading agent management: {str(e)}', 'error')
-        return render_template('error.html', error=str(e))
 
 @app.route('/admin/round_robin_status')
 @require_module_access('agent_management')
@@ -2592,8 +2414,8 @@ def admin_summary_reports():
         error_trace = traceback.format_exc()
         logger.error(f'Error loading summary reports: {str(e)}')
         logger.error(error_trace)
-        print(f'ERROR in summary_reports: {str(e)}')
-        print(error_trace)
+        logger.debug(f'ERROR in summary_reports: {str(e)}')
+        logger.debug(error_trace)
         flash(f'Error loading summary reports: {str(e)}', 'error')
         
         # Fallback with empty data - ensure all variables are defined
@@ -2763,8 +2585,8 @@ def admin_search_tickets():
         import traceback
         error_trace = traceback.format_exc()
         logger.error(error_trace)
-        print(f'ERROR in query: {str(query_error)}')
-        print(error_trace)
+        logger.debug(f'ERROR in query: {str(query_error)}')
+        logger.debug(error_trace)
         tickets = []
     
     try:
@@ -2800,8 +2622,8 @@ def admin_search_tickets():
         import traceback
         error_trace = traceback.format_exc()
         logger.error(error_trace)
-        print(f'ERROR in template: {str(template_error)}')
-        print(error_trace)
+        logger.debug(f'ERROR in template: {str(template_error)}')
+        logger.debug(error_trace)
         flash(f'Error loading search page: {str(template_error)}', 'error')
         # Return minimal template with safe defaults
         try:
@@ -2816,11 +2638,6 @@ def admin_search_tickets():
         except Exception as fallback_error:
             logger.error(f'Error in fallback template: {str(fallback_error)}')
             return render_template('500.html'), 500
-
-@app.route('/admin/search_users')
-@require_module_access('search_users')
-def admin_search_users():
-    return render_template('admin_search_users.html')
 
 @app.route('/admin/settings')
 @require_module_access('settings')
@@ -2876,236 +2693,27 @@ def update_system_settings():
 
     return redirect(url_for('admin_settings'))
 
-@app.route('/admin/module_permissions')
-@login_required
-def admin_module_permissions():
-    """Super admin module permissions management page"""
-    if current_user.role != 'super_admin':
-        flash('Access denied. Super admin privileges required.', 'error')
-        return redirect(url_for('dashboard'))
-    
-    # Get all users with admin role
-    admin_users = User.query.filter_by(role='admin').all()
-    
-    return render_template('admin_module_permissions.html', 
-                         module_permissions=MODULE_PERMISSIONS,
-                         admin_users=admin_users)
-
 @app.route('/admin/update_module_permissions', methods=['POST'])
-@login_required
-def update_module_permissions():
-    """Update module permissions for admin users"""
-    if current_user.role != 'super_admin':
-        return jsonify({'success': False, 'error': 'Access denied. Super admin privileges required.'})
-    
-    try:
-        # Get form data
-        user_id = request.form.get('user_id')
-        permissions_json = request.form.get('permissions')
-        
-        if not user_id or not permissions_json:
-            return jsonify({'success': False, 'error': 'Missing required data'})
-        
-        # Update user's module permissions
-        user = User.query.get(user_id)
-        if user and user.role == 'admin':
-            # Store permissions in user's department field as JSON
-            permissions = json.loads(permissions_json)
-            user.department = json.dumps(permissions)
-            db.session.commit()
-            
-            return jsonify({'success': True, 'message': f'Module permissions updated for {user.username}'})
-        else:
-            return jsonify({'success': False, 'error': 'User not found or invalid role'})
-            
-    except Exception as e:
-        return jsonify({'success': False, 'error': f'Error updating permissions: {str(e)}'})
-
-@app.route('/admin/system_settings')
 @require_module_access('settings')
-def admin_system_settings():
-    """Super admin system settings page"""
-    
-    # Get system statistics
-    total_users = User.query.count()
-    total_tickets = Ticket.query.count()
-    active_tickets = Ticket.query.filter(Ticket.status.in_(['Open', 'Assigned', 'In Progress'])).count()
-    
-    # Get role distribution
-    role_stats = db.session.query(User.role, db.func.count(User.id)).group_by(User.role).all()
-    
-    return render_template('admin_system_settings.html',
-                         total_users=total_users,
-                         total_tickets=total_tickets,
-                         active_tickets=active_tickets,
-                         role_stats=role_stats)
-
-@app.route('/admin/create_user', methods=['GET', 'POST'])
-@require_module_access('user_management')
-def create_user():
-    """Create a new user"""
-    if request.method == 'POST':
-        try:
-            username = request.form.get('username')
-            email = request.form.get('email')
-            password = request.form.get('password')
-            role = request.form.get('role')
-            department = request.form.get('department')
-            
-            # Validate required fields
-            if not all([username, email, password, role]):
-                flash('All fields are required!', 'error')
-                return render_template('create_user.html')
-            
-            # Check if user already exists
-            if User.query.filter_by(username=username).first():
-                flash('Username already exists!', 'error')
-                return render_template('create_user.html')
-            
-            if User.query.filter_by(email=email).first():
-                flash('Email already exists!', 'error')
-                return render_template('create_user.html')
-            
-            # Create new user
-            new_user = User(
-                username=username,
-                email=email,
-                role=role,
-                department=department,
-                is_active=True
-            )
-            new_user.set_password(password)
-            
-            db.session.add(new_user)
-            db.session.commit()
-            
-            flash(f'User {username} created successfully!', 'success')
-            return redirect(url_for('admin_users'))
-            
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error creating user: {str(e)}', 'error')
-            return render_template('create_user.html')
-    
-    return render_template('create_user.html')
-
-@app.route('/admin/bulk_create_users', methods=['GET', 'POST'])
-@require_module_access('bulk_user_creation')
-def bulk_create_users():
-    """Bulk create users"""
-    if request.method == 'POST':
-        try:
-            # Check if file was uploaded
-            if 'csv_file' not in request.files:
-                flash('No file selected!', 'error')
-                return render_template('bulk_create_users.html')
-            
-            file = request.files['csv_file']
-            if file.filename == '':
-                flash('No file selected!', 'error')
-                return render_template('bulk_create_users.html')
-            
-            if not file.filename.endswith('.csv'):
-                flash('Please upload a CSV file!', 'error')
-                return render_template('bulk_create_users.html')
-            
-            # Read and process CSV file
-            csv_content = file.read().decode('utf-8').splitlines()
-            csv_reader = csv.DictReader(csv_content)
-            
-            # Validate CSV headers
-            required_headers = ['username', 'email', 'password', 'role']
-            optional_headers = ['department']
-            
-            if not all(header in csv_reader.fieldnames for header in required_headers):
-                missing_headers = [h for h in required_headers if h not in csv_reader.fieldnames]
-                flash(f'Missing required columns: {", ".join(missing_headers)}', 'error')
-                return render_template('bulk_create_users.html')
-            
-            # Process each row
-            success_count = 0
-            error_count = 0
-            errors = []
-            
-            for row_num, row in enumerate(csv_reader, start=2):  # Start at 2 because row 1 is headers
-                try:
-                    # Validate required fields
-                    username = row['username'].strip()
-                    email = row['email'].strip()
-                    password = row['password'].strip()
-                    role = row['role'].strip()
-                    department = row.get('department', '').strip() if 'department' in row else ''
-                    
-                    if not all([username, email, password, role]):
-                        errors.append(f'Row {row_num}: Missing required fields')
-                        error_count += 1
-                        continue
-                    
-                    # Validate role
-                    valid_roles = ['user', 'admin', 'it_agent', 'fm_agent']
-                    if role not in valid_roles:
-                        errors.append(f'Row {row_num}: Invalid role "{role}". Must be one of: {", ".join(valid_roles)}')
-                        error_count += 1
-                        continue
-                    
-                    # Check if user already exists
-                    if User.query.filter_by(username=username).first():
-                        errors.append(f'Row {row_num}: Username "{username}" already exists')
-                        error_count += 1
-                        continue
-                    
-                    if User.query.filter_by(email=email).first():
-                        errors.append(f'Row {row_num}: Email "{email}" already exists')
-                        error_count += 1
-                        continue
-                    
-                    # Create new user
-                    new_user = User(
-                        username=username,
-                        email=email,
-                        role=role,
-                        department=department if department else None,
-                        is_active=True
-                    )
-                    new_user.set_password(password)
-                    
-                    db.session.add(new_user)
-                    success_count += 1
-                    
-                except Exception as e:
-                    errors.append(f'Row {row_num}: {str(e)}')
-                    error_count += 1
-            
-            # Commit all successful creations
-            if success_count > 0:
-                try:
-                    db.session.commit()
-                    flash(f'Successfully created {success_count} users!', 'success')
-                except Exception as e:
-                    db.session.rollback()
-                    flash(f'Error committing users to database: {str(e)}', 'error')
-                    return render_template('bulk_create_users.html')
-            
-            # Show errors if any
-            if error_count > 0:
-                if success_count > 0:
-                    flash(f'Created {success_count} users, but {error_count} rows had errors.', 'warning')
-                else:
-                    flash(f'No users were created. {error_count} rows had errors.', 'error')
-                
-                # Log errors for debugging (first 5 errors to avoid overwhelming the user)
-                error_summary = '; '.join(errors[:5])
-                if len(errors) > 5:
-                    error_summary += f'; and {len(errors) - 5} more errors'
-                flash(f'Error details: {error_summary}', 'error')
-            
-            return redirect(url_for('admin_users'))
-            
-        except Exception as e:
-            flash(f'Error processing CSV file: {str(e)}', 'error')
-            return render_template('bulk_create_users.html')
-    
-    return render_template('bulk_create_users.html')
+def update_module_permissions():
+    """Super admin: switch individual modules on/off for a school admin."""
+    try:
+        user = unscoped_get(User, request.form.get('user_id', type=int))
+        permissions = json.loads(request.form.get('permissions', ''))
+        if not isinstance(permissions, dict) or not all(
+                k in MODULE_PERMISSIONS and isinstance(v, bool) for k, v in permissions.items()):
+            return jsonify({'success': False, 'error': 'Invalid permissions payload'}), 400
+        if not user or user.role != ROLE_ADMIN:
+            return jsonify({'success': False, 'error': 'User not found or not a school admin'}), 404
+        user.department = json.dumps(permissions)    # school admins keep module switches here
+        db.session.commit()
+        return jsonify({'success': True, 'message': f'Module permissions updated for {user.username}'})
+    except (ValueError, TypeError):
+        return jsonify({'success': False, 'error': 'Invalid request'}), 400
+    except Exception:
+        db.session.rollback()
+        logger.exception('Error updating module permissions')
+        return jsonify({'success': False, 'error': 'Could not update permissions'}), 500
 
 @app.route('/user/ticket_summary')
 @login_required
@@ -3151,288 +2759,99 @@ def my_ticket_summary():
         flash(f'Error loading your ticket summary: {str(e)}', 'error')
         return redirect(url_for('dashboard'))
 
-@app.route('/test/module_access/<module_name>')
-@login_required
-def test_module_access(module_name):
-    """Test route to check module access for current user"""
-    try:
-        print(f"DEBUG: Testing module access for {current_user.username} (role: {current_user.role})")
-        print(f"DEBUG: Testing access to module: {module_name}")
-        
-        # Test the check_module_access function
-        has_access = check_module_access(module_name)
-        
-        # Get module permissions
-        allowed_roles = MODULE_PERMISSIONS.get(module_name, [])
-        
-        result = {
-            'username': current_user.username,
-            'role': current_user.role,
-            'module': module_name,
-            'allowed_roles': allowed_roles,
-            'has_access': has_access,
-        }
-        return jsonify(result)
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 @app.route('/backup_success')
-@login_required
+@require_module_access('backup_restore')
 def backup_success():
     return render_template('backup_success.html')
 
-# Error handlers
+# ---------------------------------------------------------------- error handling
+@app.errorhandler(CSRFError)
+def csrf_error(error):
+    logger.warning('CSRF failure on %s: %s', request.path, error.description)
+    flash('Your form expired or was invalid. Please try again.', 'error')
+    return redirect(request.referrer if _same_site(request.referrer) else url_for('index'))
+
+
+def _same_site(url):
+    if not url:
+        return False
+    parsed = urlparse(url)
+    return parsed.netloc == request.host
+
+
 @app.errorhandler(404)
 def not_found_error(error):
-    """Handle 404 errors"""
-    log_and_notify_error(error, {'error_type': '404 Not Found'})
     return render_template('404.html'), 404
 
-@app.errorhandler(500)
-def internal_error(error):
-    """Handle 500 errors"""
-    log_and_notify_error(error, {'error_type': '500 Internal Server Error'})
-    db.session.rollback()
-    return render_template('500.html'), 500
 
 @app.errorhandler(403)
 def forbidden_error(error):
-    """Handle 403 errors"""
-    log_and_notify_error(error, {'error_type': '403 Forbidden'})
     return render_template('403.html'), 403
+
 
 @app.errorhandler(401)
 def unauthorized_error(error):
-    """Handle 401 errors"""
-    log_and_notify_error(error, {'error_type': '401 Unauthorized'})
     return render_template('401.html'), 401
+
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    log_and_notify_error(error, {'error_type': '500 Internal Server Error'})
+    return render_template('500.html'), 500
+
 
 @app.errorhandler(Exception)
 def handle_exception(error):
-    """Handle all unhandled exceptions"""
+    """Unexpected exceptions -> logged + friendly 500 page. HTTP errors keep their own status."""
+    if isinstance(error, HTTPException):
+        return error
+    db.session.rollback()
     log_and_notify_error(error, {'error_type': 'Unhandled Exception'})
     return render_template('500.html'), 500
 
-# Before request handler to log requests
-@app.before_request
-def before_request():
-    """Log all requests for debugging"""
-    if request.endpoint:
-        logger.info(f"Request: {request.method} {request.url} - User: {current_user.username if current_user.is_authenticated else 'Anonymous'} - IP: {request.remote_addr}")
 
-# After request handler to log responses
+# ---------------------------------------------------------------- request guards
+@app.before_request
+def tenant_guard():
+    """Keep every request inside a valid tenant context."""
+    endpoint = request.endpoint or ''
+    if endpoint == 'static' or not current_user.is_authenticated:
+        return None
+    # forced password change (generated / reset passwords)
+    if (current_user.must_change_password
+            and endpoint not in ('change_password', 'logout', 'static', 'favicon', 'manifest', 'service_worker')):
+        return redirect(url_for('change_password'))
+    if current_user.role == ROLE_SUPER_ADMIN:
+        sid = session.get('active_school_id')
+        if sid and not db.session.get(School, sid):       # school was deleted
+            session.pop('active_school_id', None)
+            sid = None
+        if not sid and endpoint not in PLATFORM_ENDPOINTS and not endpoint.startswith('tenant.'):
+            flash('Select a school first to work with its tickets and agents.', 'info')
+            return redirect(url_for('tenant.platform_dashboard'))
+    return None
+
+
 @app.after_request
 def after_request(response):
-    """Log response status"""
-    if response.status_code >= 400:
-        logger.warning(f"Response: {response.status_code} for {request.method} {request.url}")
+    response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+    response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
+    response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+    if current_user and current_user.is_authenticated and request.endpoint != 'static':
+        response.headers['Cache-Control'] = 'no-store'   # never cache another tenant's pages
+    if response.status_code >= 500:
+        logger.error(f"Response: {response.status_code} for {request.method} {request.path}")
     return response
 
 
-@app.route('/admin/reports')
-@login_required
-def admin_reports():
-    """Admin Reports page"""
-    try:
-        # Check if user has permission
-        if not has_permission(current_user, 'admin_reports'):
-            flash('Access denied. You do not have permission to access this page.', 'error')
-            return redirect(url_for('dashboard'))
-        
-        return render_template('admin_reports.html')
-        
-    except Exception as e:
-        flash(f'Error loading admin_reports: {str(e)}', 'error')
-        return redirect(url_for('admin_dashboard'))
+app.register_blueprint(tenant_bp)
+app.config['SCHOOL_LOGO_FOLDER'] = SCHOOL_LOGO_FOLDER
 
 
-
-
-@app.route('/admin/user_activity')
-@login_required
-def admin_user_activity():
-    """Admin User Activity page"""
-    try:
-        # Check if user has permission
-        if not has_permission(current_user, 'admin_user_activity'):
-            flash('Access denied. You do not have permission to access this page.', 'error')
-            return redirect(url_for('dashboard'))
-        
-        return render_template('admin_user_activity.html')
-        
-    except Exception as e:
-        flash(f'Error loading admin_user_activity: {str(e)}', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-
-@app.route('/admin/system_logs')
-@login_required
-def admin_system_logs():
-    """Admin System Logs page"""
-    try:
-        # Check if user has permission
-        if not has_permission(current_user, 'admin_system_logs'):
-            flash('Access denied. You do not have permission to access this page.', 'error')
-            return redirect(url_for('dashboard'))
-        
-        return render_template('admin_system_logs.html')
-        
-    except Exception as e:
-        flash(f'Error loading admin_system_logs: {str(e)}', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-
-@app.route('/admin/permissions')
-@login_required
-def admin_permissions():
-    """Admin Permissions page"""
-    try:
-        # Check if user has permission
-        if not has_permission(current_user, 'admin_permissions'):
-            flash('Access denied. You do not have permission to access this page.', 'error')
-            return redirect(url_for('dashboard'))
-        
-        return render_template('admin_permissions.html')
-        
-    except Exception as e:
-        flash(f'Error loading admin_permissions: {str(e)}', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-
-@app.route('/admin/roles')
-@login_required
-def admin_roles():
-    """Admin Roles page"""
-    try:
-        # Check if user has permission
-        if not has_permission(current_user, 'admin_roles'):
-            flash('Access denied. You do not have permission to access this page.', 'error')
-            return redirect(url_for('dashboard'))
-        
-        return render_template('admin_roles.html')
-        
-    except Exception as e:
-        flash(f'Error loading admin_roles: {str(e)}', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-
-@app.route('/admin/departments')
-@login_required
-def admin_departments():
-    """Admin Departments page"""
-    try:
-        # Check if user has permission
-        if not has_permission(current_user, 'admin_departments'):
-            flash('Access denied. You do not have permission to access this page.', 'error')
-            return redirect(url_for('dashboard'))
-        
-        return render_template('admin_departments.html')
-        
-    except Exception as e:
-        flash(f'Error loading admin_departments: {str(e)}', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-
-@app.route('/admin/categories')
-@login_required
-def admin_categories():
-    """Admin Categories page"""
-    try:
-        # Check if user has permission
-        if not has_permission(current_user, 'admin_categories'):
-            flash('Access denied. You do not have permission to access this page.', 'error')
-            return redirect(url_for('dashboard'))
-        
-        return render_template('admin_categories.html')
-        
-    except Exception as e:
-        flash(f'Error loading admin_categories: {str(e)}', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-
-@app.route('/admin/priorities')
-@login_required
-def admin_priorities():
-    """Admin Priorities page"""
-    try:
-        # Check if user has permission
-        if not has_permission(current_user, 'admin_priorities'):
-            flash('Access denied. You do not have permission to access this page.', 'error')
-            return redirect(url_for('dashboard'))
-        
-        return render_template('admin_priorities.html')
-        
-    except Exception as e:
-        flash(f'Error loading admin_priorities: {str(e)}', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-
-@app.route('/admin/statuses')
-@login_required
-def admin_statuses():
-    """Admin Statuses page"""
-    try:
-        # Check if user has permission
-        if not has_permission(current_user, 'admin_statuses'):
-            flash('Access denied. You do not have permission to access this page.', 'error')
-            return redirect(url_for('dashboard'))
-        
-        return render_template('admin_statuses.html')
-        
-    except Exception as e:
-        flash(f'Error loading admin_statuses: {str(e)}', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-
-@app.route('/admin/notifications')
-@login_required
-def admin_notifications():
-    """Admin Notifications page"""
-    try:
-        # Check if user has permission
-        if not has_permission(current_user, 'admin_notifications'):
-            flash('Access denied. You do not have permission to access this page.', 'error')
-            return redirect(url_for('dashboard'))
-        
-        return render_template('admin_notifications.html')
-        
-    except Exception as e:
-        flash(f'Error loading admin_notifications: {str(e)}', 'error')
-        return redirect(url_for('admin_dashboard'))
-
-
-
-
-
-if __name__ == '__main__':
+def _seed_email_templates():
+    """Create the default (platform-wide) e-mail templates when missing."""
     with app.app_context():
-        # Create database tables
-        db.create_all()
-
-        # Ensure logo upload directory exists
-        os.makedirs(LOGO_UPLOAD_FOLDER, exist_ok=True)
-
-        # Create default system settings if absent
-        if not SystemSettings.query.first():
-            db.session.add(SystemSettings(system_name='Al Qeyam Helpdesk'))
-            db.session.commit()
-
-        # Create super admin user if it doesn't exist
-        super_admin = User.query.filter_by(username='admin').first()
-        if not super_admin:
-            super_admin = User(
-                username='admin',
-                email='admin@helpdesk.local',
-                password_hash=generate_password_hash('admin123'),
-                role='super_admin',
-                is_active=True
-            )
-            db.session.add(super_admin)
-            db.session.commit()
-            print("Super admin user created: admin / admin123")
-        
-        # Create default email templates if they don't exist
         default_templates = [
             {
                 'template_type': 'ticket_created',
@@ -3618,67 +3037,11 @@ if __name__ == '__main__':
         
         db.session.commit()
 
-@app.route('/admin/download_tickets_excel')
-@login_required
-def download_tickets_excel():
-    """Download tickets as Excel file"""
-    try:
-        # Get all tickets
-        tickets = Ticket.query.order_by(Ticket.created_at.desc()).all()
-        
-        # Create Excel file
-        import io
-        import pandas as pd
-        from datetime import datetime
-        
-        # Prepare data for Excel
-        data = []
-        for ticket in tickets:
-            creator = User.query.get(ticket.created_by)
-            assigned_agent = User.query.get(ticket.assigned_to) if ticket.assigned_to else None
-            
-            data.append({
-                'Ticket ID': ticket.id,
-                'Title': ticket.title,
-                'Description': ticket.description,
-                'Category': ticket.category,
-                'Priority': ticket.priority,
-                'Status': ticket.status,
-                'Created By': creator.username if creator else 'Unknown',
-                'Creator Email': creator.email if creator else 'Unknown',
-                'Assigned To': assigned_agent.username if assigned_agent else 'Unassigned',
-                'Created Date': ticket.created_at.strftime('%Y-%m-%d %H:%M:%S') if ticket.created_at else '',
-                'Updated Date': ticket.updated_at.strftime('%Y-%m-%d %H:%M:%S') if ticket.updated_at else '',
-                'Comments Count': len(ticket.comments) if hasattr(ticket, 'comments') else 0
-            })
-        
-        # Create DataFrame and Excel file
-        df = pd.DataFrame(data)
-        
-        # Create Excel file in memory
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, sheet_name='Tickets', index=False)
-        
-        output.seek(0)
-        
-        # Generate filename with timestamp
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f'tickets_export_{timestamp}.xlsx'
-        
-        return send_file(
-            output,
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            as_attachment=True,
-            download_name=filename
-        )
-        
-    except Exception as e:
-        flash(f'Error generating Excel file: {str(e)}', 'error')
-        return redirect(url_for('admin_tickets'))
+
+_seed_email_templates()
 
 @app.route('/admin/download_summary_pdf')
-@login_required
+@require_module_access('summary_reports')
 def download_summary_pdf():
     """Download summary report as PDF"""
     try:
@@ -3717,7 +3080,7 @@ def download_summary_pdf():
         )
         
         # Add title
-        story.append(Paragraph("Al Qeyam Helpdesk - Summary Report", title_style))
+        story.append(Paragraph(f"{(active_school().system_name if active_school() else 'Al Qeyam Helpdesk')} - Summary Report", title_style))
         story.append(Spacer(1, 12))
         
         # Add timestamp
@@ -3806,7 +3169,7 @@ def download_summary_pdf():
 
 # Missing routes to fix BuildError issues
 @app.route('/admin/download_table_excel/<table_name>')
-@login_required
+@require_module_access('database_management')
 def download_table_excel(table_name):
     """Download specific table as Excel file"""
     try:
@@ -3818,7 +3181,7 @@ def download_table_excel(table_name):
         return redirect(url_for('admin_database_management'))
 
 @app.route('/admin/download_all_tables_excel')
-@login_required
+@require_module_access('database_management')
 def download_all_tables_excel():
     """Download all tables as Excel file"""
     try:
@@ -3830,7 +3193,7 @@ def download_all_tables_excel():
         return redirect(url_for('admin_database_management'))
 
 @app.route('/admin/switch_database/<int:db_index>', methods=['POST'])
-@login_required
+@require_module_access('database_management')
 def switch_database(db_index):
     """Switch to different database"""
     try:
@@ -3841,109 +3204,8 @@ def switch_database(db_index):
         flash(f'Error switching database: {str(e)}', 'error')
         return redirect(url_for('admin_database_management'))
 
-@app.route('/admin/toggle_user_status/<int:user_id>', methods=['POST'])
-@login_required
-def toggle_user_status(user_id):
-    """Toggle user active status"""
-    try:
-        user = User.query.get_or_404(user_id)
-        user.is_active = not user.is_active
-        db.session.commit()
-        flash(f'User {user.username} status toggled successfully.', 'success')
-    except Exception as e:
-        flash(f'Error toggling user status: {str(e)}', 'error')
-    return redirect(url_for('admin_users'))
-
-@app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
-@login_required
-def delete_user(user_id):
-    """Delete user"""
-    try:
-        user = User.query.get_or_404(user_id)
-        if user.username == 'admin':
-            flash('Cannot delete admin user.', 'error')
-        else:
-            db.session.delete(user)
-            db.session.commit()
-            flash(f'User {user.username} deleted successfully.', 'success')
-    except Exception as e:
-        flash(f'Error deleting user: {str(e)}', 'error')
-    return redirect(url_for('admin_users'))
-
-@app.route('/admin/add_agent', methods=['GET', 'POST'])
-@login_required
-def add_agent():
-    """Add new agent"""
-    if request.method == 'GET':
-        return render_template('add_agent.html')
-    
-    try:
-        # Get form data
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-        agent_type = request.form.get('agent_type')
-        department = request.form.get('department')
-        full_name = request.form.get('full_name')
-        phone = request.form.get('phone')
-        notes = request.form.get('notes')
-        
-        # Validation
-        if not all([username, email, password, confirm_password, agent_type]):
-            flash('All required fields must be filled.', 'error')
-            return redirect(url_for('add_agent'))
-        
-        if password != confirm_password:
-            flash('Passwords do not match.', 'error')
-            return redirect(url_for('add_agent'))
-        
-        # Check if username already exists
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists. Please choose a different username.', 'error')
-            return redirect(url_for('add_agent'))
-        
-        # Check if email already exists
-        if User.query.filter_by(email=email).first():
-            flash('Email already exists. Please use a different email address.', 'error')
-            return redirect(url_for('add_agent'))
-        
-        # Create new user/agent
-        new_agent = User(
-            username=username,
-            email=email,
-            role=agent_type,
-            department=department,
-            is_active=True
-        )
-        new_agent.set_password(password)
-        
-        # Store additional info in department field as JSON
-        additional_info = {}
-        if full_name:
-            additional_info['full_name'] = full_name
-        if phone:
-            additional_info['phone'] = phone
-        if notes:
-            additional_info['notes'] = notes
-        
-        if additional_info:
-            new_agent.department = json.dumps(additional_info)
-        
-        # Save to database
-        db.session.add(new_agent)
-        db.session.commit()
-        
-        flash(f'Agent {username} has been successfully created!', 'success')
-        return redirect(url_for('admin_agent_management'))
-        
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error adding agent: {str(e)}', 'error')
-        return redirect(url_for('add_agent'))
-
 @app.route('/admin/create_system_backup', methods=['POST'])
-@login_required
+@require_module_access('backup_restore')
 def create_system_backup():
     """Create system backup"""
     try:
@@ -3955,7 +3217,7 @@ def create_system_backup():
         return redirect(url_for('admin_backup_restore'))
 
 @app.route('/admin/create_database_backup', methods=['POST'])
-@login_required
+@require_module_access('backup_restore')
 def create_database_backup():
     """Create database backup"""
     try:
@@ -3967,7 +3229,7 @@ def create_database_backup():
         return redirect(url_for('admin_backup_restore'))
 
 @app.route('/admin/restore_system_backup', methods=['POST'])
-@login_required
+@require_module_access('backup_restore')
 def restore_system_backup():
     """Restore system backup"""
     try:
@@ -3979,7 +3241,7 @@ def restore_system_backup():
         return redirect(url_for('admin_backup_restore'))
 
 @app.route('/admin/send_daily_summary', methods=['POST'])
-@login_required
+@admin_required
 def send_daily_summary():
     """Send daily summary email"""
     try:
@@ -3990,74 +3252,362 @@ def send_daily_summary():
         flash(f'Error sending daily summary: {str(e)}', 'error')
         return redirect(url_for('admin_dashboard'))
 
-@app.route('/admin/view_user/<int:user_id>')
-@login_required
-def view_user(user_id):
-    """View user details"""
+# ---------------------------------------------------------------- user management
+def _schools_for_forms():
+    if current_user.role == ROLE_SUPER_ADMIN:
+        return School.query.order_by(School.name).all()
+    return []
+
+
+def _find_user_or_404(user_id):
+    """User the current admin is allowed to manage (school admins: own school only)."""
+    user = db.session.get(User, user_id)
+    if user is None or not user_service.can_manage_user(current_user, user):
+        abort(404)
+    return user
+
+
+def _user_has_history(user_id):
+    """True when removing the user would orphan tickets/comments."""
+    if Ticket.query.filter(db.or_(Ticket.created_by == user_id, Ticket.assigned_to == user_id)).first():
+        return True
+    return Comment.query.filter_by(user_id=user_id).first() is not None
+
+
+@app.route('/admin/users')
+@require_module_access('user_management')
+@platform_scope
+def admin_users():
+    query = User.query
+    if current_user.role != ROLE_SUPER_ADMIN:
+        query = query.filter(User.role != ROLE_SUPER_ADMIN)
+    school_filter = request.args.get('school_id', type=int)
+    role_filter = request.args.get('role', '').strip()
+    status_filter = request.args.get('status', '').strip()
+    term = request.args.get('q', '').strip()
+    if school_filter and current_user.role == ROLE_SUPER_ADMIN:
+        query = query.filter(User.school_id == school_filter)
+    if role_filter in ALL_ROLES:
+        query = query.filter(User.role == role_filter)
+    if status_filter in ('active', 'inactive'):
+        query = query.filter(User.is_active == (status_filter == 'active'))
+    if term:
+        like = f'%{term}%'
+        query = query.filter(db.or_(User.username.ilike(like), User.email.ilike(like), User.full_name.ilike(like)))
+    counts = dict(query.with_entities(User.role, db.func.count(User.id)).group_by(User.role).all())
+    page = request.args.get('page', 1, type=int)
+    pagination = query.order_by(User.created_at.desc(), User.id.desc()).paginate(page=page, per_page=50, error_out=False)
+    return render_template('admin_users.html', users=pagination.items, pagination=pagination, counts=counts,
+                           total=sum(counts.values()), schools=_schools_for_forms(), filters={
+                               'school_id': school_filter, 'role': role_filter, 'status': status_filter, 'q': term})
+
+
+@app.route('/admin/create_user', methods=['GET', 'POST'])
+@require_module_access('user_management')
+@platform_scope
+def create_user():
+    """Create a user in a school (school admins: their own school; super admin: any school)."""
+    ctx = {'schools': _schools_for_forms(), 'roles': user_service.assignable_roles(current_user),
+           'form': {'role': request.args.get('role', '')}}
+    if request.method == 'GET':
+        if ctx['form']['role'] == 'agent':
+            ctx['form']['role'] = ''
+        return render_template('create_user.html', **ctx)
+
+    form = {k: request.form.get(k, '').strip() for k in
+            ('username', 'email', 'role', 'full_name', 'department', 'school_id')}
+    password = request.form.get('password', '')
+    ctx['form'] = form
+    school = user_service.resolve_school_for_actor(current_user, form['school_id'])
+    email = user_service.normalize_email(form['email'])
+    username = form['username'] or (user_service.make_unique_username(email.split('@')[0], school)
+                                    if email and '@' in email and school else '')
+    generated = not password
+    if generated:
+        password = user_service.generate_password()
+    role = form['role']
+    if role == ROLE_SUPER_ADMIN:
+        school = None
+    error = user_service.validate_new_user(current_user, username=username, email=email, password=password,
+                                           role=role, school=school)
+    if not error and school is not None and not school.is_active:
+        error = 'That school is suspended.'
+    if error:
+        flash(error, 'error')
+        return render_template('create_user.html', **ctx), 400
     try:
-        user = User.query.get_or_404(user_id)
-        return render_template('view_user.html', user=user)
-    except Exception as e:
-        flash(f'Error viewing user: {str(e)}', 'error')
-        return redirect(url_for('admin_users'))
+        user = user_service.build_user(username=username, email=email, password=password, role=role, school=school,
+                                       full_name=form['full_name'], department=form['department'],
+                                       must_change_password=True)
+        db.session.add(user)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        logger.exception('Error creating user')
+        flash('Could not create the user. Please try again.', 'error')
+        return render_template('create_user.html', **ctx), 500
+    msg = f'User {username} created'
+    if school is not None:
+        msg += f' in {school.name}'
+    if generated:
+        msg += f'. Temporary password (shown once): {password}'
+    flash(msg, 'success')
+    return redirect(url_for('admin_users'))
+
+
+@app.route('/admin/bulk_create_users', methods=['GET', 'POST'])
+@require_module_access('bulk_user_creation')
+def bulk_create_users():
+    """Kept for old links: the importer lives at /admin/import/users."""
+    return redirect(url_for('tenant.import_users_view'), code=307 if request.method == 'POST' else 302)
+
+
+@app.route('/admin/add_agent', methods=['GET', 'POST'])
+@require_module_access('agent_management')
+def add_agent():
+    return redirect(url_for('create_user', role=''))
+
+
+@app.route('/admin/toggle_user_status/<int:user_id>', methods=['POST'])
+@require_module_access('user_management')
+@platform_scope
+def toggle_user_status(user_id):
+    user = _find_user_or_404(user_id)
+    if user.id == current_user.id:
+        flash('You cannot deactivate your own account.', 'error')
+    else:
+        user.is_active = not user.is_active
+        db.session.commit()
+        flash(f'User {user.username} {"activated" if user.is_active else "deactivated"}.', 'success')
+    return redirect(url_for('admin_users'))
+
+
+@app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@require_module_access('user_management')
+@platform_scope
+def delete_user(user_id):
+    user = _find_user_or_404(user_id)
+    if user.id == current_user.id:
+        flash('You cannot delete your own account.', 'error')
+    elif user.role == ROLE_SUPER_ADMIN and User.query.filter_by(role=ROLE_SUPER_ADMIN).count() <= 1:
+        flash('Cannot delete the last super admin.', 'error')
+    elif _user_has_history(user.id):
+        flash(f'{user.username} has tickets or comments and cannot be deleted. Deactivate the account instead.', 'error')
+    else:
+        try:
+            UserActivityLog.query.filter_by(user_id=user.id).delete()
+            db.session.delete(user)
+            db.session.commit()
+            flash(f'User {user.username} deleted.', 'success')
+        except Exception:
+            db.session.rollback()
+            logger.exception('Error deleting user %s', user_id)
+            flash('Could not delete the user.', 'error')
+    return redirect(url_for('admin_users'))
+
+
+@app.route('/admin/view_user/<int:user_id>')
+@require_module_access('user_management')
+@platform_scope
+def view_user(user_id):
+    user = _find_user_or_404(user_id)
+    created = Ticket.query.filter_by(created_by=user.id).order_by(Ticket.created_at.desc()).limit(25).all()
+    assigned = Ticket.query.filter_by(assigned_to=user.id).order_by(Ticket.created_at.desc()).limit(25).all()
+    stats = {
+        'created': Ticket.query.filter_by(created_by=user.id).count(),
+        'assigned': Ticket.query.filter_by(assigned_to=user.id).count(),
+        'comments': Comment.query.filter_by(user_id=user.id).count(),
+    }
+    return render_template('view_user.html', user=user, created=created, assigned=assigned, stats=stats)
+
+
+@app.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
+@require_module_access('user_management')
+@platform_scope
+def edit_user(user_id):
+    user = _find_user_or_404(user_id)
+    ctx = {'user': user, 'schools': _schools_for_forms(), 'roles': user_service.assignable_roles(current_user)}
+    if request.method == 'GET':
+        return render_template('edit_user.html', **ctx)
+
+    username = request.form.get('username', '').strip()
+    email = user_service.normalize_email(request.form.get('email'))
+    role = request.form.get('role', user.role)
+    is_self = user.id == current_user.id
+    error = None
+    if not user_service.USERNAME_RE.match(username):
+        error = 'Username must be 3-80 characters (letters, digits and . _ @ + - only).'
+    elif not user_service.EMAIL_RE.match(email):
+        error = 'Please enter a valid email address.'
+    elif role not in user_service.assignable_roles(current_user) and role != user.role:
+        error = f'Role "{role}" is not allowed.'
+    elif is_self and role != user.role:
+        error = 'You cannot change your own role.'
+    else:
+        clash = User.query.filter(
+            User.id != user.id,
+            db.or_(db.func.lower(User.username) == username.lower(), db.func.lower(User.email) == email)).first()
+        if clash:
+            error = 'Another user already has that username or email.'
+
+    new_school_id = user.school_id
+    if not error and current_user.role == ROLE_SUPER_ADMIN and role != ROLE_SUPER_ADMIN:
+        raw = request.form.get('school_id')
+        try:
+            target = db.session.get(School, int(raw)) if raw else None
+        except (TypeError, ValueError):
+            target = None
+        if target is None:
+            error = 'Please choose a school.'
+        elif target.id != user.school_id:
+            if _user_has_history(user.id):
+                error = ('This user already has tickets/comments in the current school, so they cannot be moved. '
+                         'Create a new account in the other school instead.')
+            else:
+                new_school_id = target.id
+    if error:
+        flash(error, 'error')
+        return render_template('edit_user.html', **ctx), 400
+
+    user.username, user.email = username, email
+    user.full_name = request.form.get('full_name', '').strip() or None
+    if role != user.role:
+        user.role = role
+        if role == ROLE_SUPER_ADMIN:
+            new_school_id = None
+    if not is_self:
+        user.is_active = request.form.get('is_active') == 'on'
+    if user.role != ROLE_ADMIN:  # for admins ``department`` stores module permissions
+        user.department = request.form.get('department', '').strip() or None
+    user.school_id = new_school_id
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        logger.exception('Error updating user %s', user_id)
+        flash('Could not update the user.', 'error')
+        return render_template('edit_user.html', **ctx), 500
+    flash(f'User {user.username} updated successfully.', 'success')
+    return redirect(url_for('admin_users'))
+
+
+@app.route('/admin/reset_password/<int:user_id>', methods=['POST'])
+@require_module_access('user_management')
+@platform_scope
+def reset_password(user_id):
+    user = _find_user_or_404(user_id)
+    new_password = request.form.get('new_password', '')
+    if len(new_password) < MIN_PASSWORD_LENGTH:
+        flash(f'Password must be at least {MIN_PASSWORD_LENGTH} characters.', 'error')
+    else:
+        user.set_password(new_password)
+        user.must_change_password = True
+        db.session.commit()
+        flash(f'Password for {user.username} was reset. They must choose a new one at next sign-in.', 'success')
+    return redirect(url_for('edit_user', user_id=user.id))
+
+
+@app.route('/admin/search_users', methods=['GET', 'POST'])
+@require_module_access('search_users')
+@platform_scope
+def admin_search_users():
+    data = request.values
+    term = data.get('query', '').strip()
+    role = data.get('role', '').strip() or None
+    active_raw = data.get('is_active', '')
+    base = User.query
+    if current_user.role != ROLE_SUPER_ADMIN:
+        base = base.filter(User.role != ROLE_SUPER_ADMIN)
+    if term:
+        like = f'%{term}%'
+        base = base.filter(db.or_(User.username.ilike(like), User.email.ilike(like), User.full_name.ilike(like),
+                                  User.department.ilike(like)))
+    if role in ALL_ROLES:
+        base = base.filter(User.role == role)
+    if active_raw in ('true', 'false', '1', '0'):
+        base = base.filter(User.is_active == (active_raw in ('true', '1')))
+    users = base.order_by(User.username).limit(200).all()
+    return render_template('admin_search_users.html', users=users, query=term, searched=bool(request.values))
+
 
 @app.route('/admin/download_user_tickets/<int:user_id>')
 @login_required
+@platform_scope
 def download_user_tickets(user_id):
-    """Download user tickets as Excel"""
-    try:
-        # Placeholder implementation
-        flash('Download user tickets feature is not implemented yet.', 'info')
-        return redirect(url_for('admin_summary_reports'))
-    except Exception as e:
-        flash(f'Error downloading user tickets: {str(e)}', 'error')
-        return redirect(url_for('admin_summary_reports'))
-
-@app.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
-@login_required
-def edit_user(user_id):
-    """Edit user details"""
-    try:
-        user = User.query.get_or_404(user_id)
-        
-        if request.method == 'POST':
-            action = request.form.get('action')
-            
-            if action == 'reset_password':
-                # Handle password reset
-                new_password = request.form.get('new_password')
-                if new_password:
-                    user.set_password(new_password)
-                    db.session.commit()
-                    flash(f'Password for user {user.username} has been reset successfully.', 'success')
-                else:
-                    flash('New password is required for password reset.', 'error')
-                return redirect(url_for('edit_user', user_id=user_id))
-            
-            # Handle regular user editing
-            # Update user details
-            user.username = request.form.get('username')
-            user.email = request.form.get('email')
-            user.role = request.form.get('role')
-            user.department = request.form.get('department')
-            user.is_active = request.form.get('is_active') == 'on'
-            
-            # Update password if provided
-            new_password = request.form.get('password')
-            if new_password:
-                user.set_password(new_password)
-            
-            db.session.commit()
-            flash(f'User {user.username} updated successfully.', 'success')
-            return redirect(url_for('admin_users'))
-        
-        return render_template('edit_user.html', user=user)
-        
-    except Exception as e:
-        flash(f'Error editing user: {str(e)}', 'error')
-        return redirect(url_for('admin_users'))
+    """Excel export of the tickets a user raised (admins, or the user themselves)."""
+    if current_user.role not in ADMIN_ROLES and current_user.id != user_id:
+        abort(403)
+    user = db.session.get(User, user_id)
+    if user is None or (current_user.role != ROLE_SUPER_ADMIN and user.school_id != current_user.school_id):
+        abort(404)
+    tickets = Ticket.query.filter_by(created_by=user.id).order_by(Ticket.created_at.desc()).all()
+    return _tickets_workbook_response(tickets, f'tickets_{user.username}')
 
 
+def _tickets_workbook_response(tickets, basename):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Tickets'
+    headers = ['Ticket ID', 'Title', 'Description', 'Category', 'Priority', 'Status', 'Created By',
+               'Creator Email', 'Assigned To', 'Created', 'Updated', 'Comments']
+    ws.append(headers)
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+    for t in tickets:
+        ws.append([
+            t.id, t.title, t.description, t.category, t.priority, t.status,
+            t.creator.username if t.creator else '', t.creator.email if t.creator else '',
+            t.assignee.username if t.assignee else 'Unassigned',
+            t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '',
+            t.updated_at.strftime('%Y-%m-%d %H:%M') if t.updated_at else '', len(t.comments)])
+    out = BytesIO()
+    wb.save(out)
+    out.seek(0)
+    stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    return send_file(out, as_attachment=True, download_name=f'{basename}_{stamp}.xlsx',
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+
+@app.route('/admin/download_tickets_excel')
+@require_module_access('ticket_management')
+def download_tickets_excel():
+    """Download this school's tickets as Excel."""
+    tickets = Ticket.query.order_by(Ticket.created_at.desc()).all()
+    school = active_school()
+    return _tickets_workbook_response(tickets, f'tickets_{school.slug if school else "export"}')
+
+
+@app.route('/admin/agent_management')
+@require_module_access('agent_management')
+def admin_agent_management():
+    """Agents of the current school, their workload and the round-robin order."""
+    agents = {}
+    for role in AGENT_ROLES:
+        agents[role] = {
+            'active': User.query.filter_by(role=role, is_active=True).order_by(User.created_at, User.id).all(),
+            'inactive': User.query.filter_by(role=role, is_active=False).order_by(User.username).all(),
+        }
+    open_statuses = ('Open', 'Assigned', 'In Progress')
+    workload = {}
+    for agent_id, status, n in db.session.query(Ticket.assigned_to, Ticket.status, db.func.count(Ticket.id)) \
+            .filter(Ticket.assigned_to.isnot(None)).group_by(Ticket.assigned_to, Ticket.status):
+        w = workload.setdefault(agent_id, {'total': 0, 'active': 0, 'resolved': 0})
+        w['total'] += n
+        if status in open_statuses:
+            w['active'] += n
+        else:
+            w['resolved'] += n
+    rotation = {}
+    for category, role in CATEGORY_AGENT_ROLE.items():
+        nxt = assign_ticket_round_robin(category)
+        rotation[category] = {
+            'next': nxt.username if nxt else None,
+            'order': [a.username for a in agents[role]['active']],
+            'unassigned': Ticket.query.filter_by(category=category, assigned_to=None).filter(
+                Ticket.status == 'Open').count(),
+        }
+    return render_template('admin_agent_management.html', agents=agents, workload=workload, rotation=rotation,
+                           category_roles=CATEGORY_AGENT_ROLE)
 
 
 
@@ -4072,8 +3622,21 @@ def favicon():
 
 @app.route('/static/manifest.json')
 def manifest():
-    """Serve PWA manifest.json"""
-    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+    """PWA manifest, branded for the school the visitor belongs to."""
+    path = os.path.join(app.static_folder, 'manifest.json')
+    with open(path, encoding='utf-8') as fh:
+        data = json.load(fh)
+    school = active_school()
+    if school:
+        data['name'] = school.system_name
+        data['short_name'] = school.system_name[:12]
+        theme = build_theme(school.primary_color, school.secondary_color)
+        data['theme_color'] = data['background_color'] = theme['dark']
+        data['start_url'] = url_for('school_login', slug=school.slug)
+    response = app.response_class(json.dumps(data), mimetype='application/manifest+json')
+    response.headers['Cache-Control'] = 'no-cache'
+    return response
+
 
 @app.route('/static/service-worker.js')
 def service_worker():
@@ -4082,3 +3645,22 @@ def service_worker():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
+
+
+@app.cli.command('create-superadmin')
+def create_superadmin_command():
+    """Create (or reset) a platform super admin: flask --app app create-superadmin"""
+    import click
+    username = click.prompt('Username', default='admin')
+    email = click.prompt('Email')
+    password = click.prompt('Password', hide_input=True, confirmation_prompt=True)
+    if len(password) < MIN_PASSWORD_LENGTH:
+        raise click.ClickException(f'Password must be at least {MIN_PASSWORD_LENGTH} characters.')
+    user = User.query.execution_options(tenant_bypass=True).filter_by(username=username).first()
+    if user is None:
+        user = User(username=username, email=email, role=ROLE_SUPER_ADMIN, is_active=True)
+        db.session.add(user)
+    user.role, user.school_id, user.is_active = ROLE_SUPER_ADMIN, None, True
+    user.set_password(password)
+    db.session.commit()
+    click.echo(f'Super admin "{username}" is ready.')

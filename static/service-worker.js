@@ -1,5 +1,5 @@
-const CACHE_NAME = 'helpdesk-v1';
-const STATIC_CACHE = 'helpdesk-static-v1';
+const CACHE_NAME = 'helpdesk-v2';
+const STATIC_CACHE = 'helpdesk-static-v2';
 
 // Assets to pre-cache on install
 const PRECACHE_URLS = [
@@ -80,7 +80,9 @@ async function networkFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   try {
     const response = await fetch(request);
-    if (response.ok) cache.put(request, response.clone());
+    // Pages of signed-in users are sent with Cache-Control: no-store (tenant data): never keep them offline.
+    const noStore = (response.headers.get('Cache-Control') || '').includes('no-store');
+    if (response.ok && !noStore) cache.put(request, response.clone());
     return response;
   } catch {
     const cached = await cache.match(request);
