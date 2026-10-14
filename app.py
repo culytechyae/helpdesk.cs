@@ -992,6 +992,7 @@ def _login_view(school=None):
         _clear_failed_logins(identifier)
         session.clear()
         login_user(user, remember=False)
+        tenancy.reset_identity()
         session.permanent = True
         if user.role != ROLE_SUPER_ADMIN:
             session['login_school_id'] = user.school_id
@@ -1034,6 +1035,7 @@ def logout():
         user_agent=request.headers.get('User-Agent'))
     logout_user()
     session.clear()
+    tenancy.reset_identity()
     school = db.session.get(School, school_id) if school_id else None
     if school:
         return redirect(url_for('school_login', slug=school.slug))

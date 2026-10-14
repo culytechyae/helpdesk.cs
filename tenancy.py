@@ -41,18 +41,49 @@ class TenantError(Exception):
 
 
 # --------------------------------------------------------------------------- scope
+def _identity():
+    """(role, school_id) of the signed-in user, read with a plain column query.
+
+    Deliberately avoids touching the ORM ``User`` instance: that may be expired after a commit, and
+    reloading it would re-enter the tenant filter (infinite recursion).
+    """
+    cached = g.get('_tenant_identity')
+    if cached is not None:
+        return cached
+    ident = (None, None)
+    raw = session.get('_user_id')
+    if raw:
+        try:
+            row = db.session.execute(
+                db.select(User.role, User.school_id, User.is_active)
+                .where(User.id == int(raw)).execution_options(tenant_bypass=True)).first()
+        except (TypeError, ValueError):
+            row = None
+        if row is not None and row.is_active:
+            ident = (row.role, row.school_id)
+    g._tenant_identity = ident
+    return ident
+
+
+def reset_identity():
+    """Call after login/logout so the cached identity is recomputed."""
+    if has_request_context():
+        g.pop('_tenant_identity', None)
+        g.pop('_active_school', None)
+
+
 def effective_school_id():
     """Return BYPASS, a school id (int), or None (= no school -> match nothing)."""
     if not has_request_context():
         return BYPASS  # CLI / scheduler / migrations: explicit, trusted code
     if g.get('tenant_bypass'):
         return BYPASS
-    user = current_user
-    if not user or not user.is_authenticated:
+    role, school_id = _identity()
+    if role is None:
         return None
-    if user.role == ROLE_SUPER_ADMIN:
+    if role == ROLE_SUPER_ADMIN:
         return session.get('active_school_id')
-    return user.school_id
+    return school_id
 
 
 @contextmanager

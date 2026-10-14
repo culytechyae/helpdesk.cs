@@ -30,62 +30,13 @@ def setup_logging():
     return logging.getLogger(__name__)
 
 def initialize_databases():
-    """Initialize all databases safely"""
+    """Create/upgrade the schema. Importing ``app`` runs the idempotent tenancy migration and, on a
+    brand-new database, creates the first super admin (see INITIAL_ADMIN_PASSWORD in the docs).
+    No sample users or default passwords are created."""
     logger = logging.getLogger(__name__)
-    
     try:
-        from app import app, db, DATABASES, User, generate_password_hash
-        
-        logger.info("Starting database initialization...")
-        
-        # Initialize main database
-        with app.app_context():
-            db.create_all()
-            logger.info("Main database initialized successfully")
-            
-            # Create admin user if it doesn't exist
-            admin = User.query.filter_by(username='admin').first()
-            if not admin:
-                admin = User(
-                    username='admin',
-                    email='admin@school.com',
-                    password_hash=generate_password_hash('admin123'),
-                    role='admin'
-                )
-                db.session.add(admin)
-                logger.info("Admin user created")
-            
-            # Create sample IT agents
-            it_agents = User.query.filter_by(role='it_agent').all()
-            if len(it_agents) < 3:
-                for i in range(3 - len(it_agents)):
-                    agent = User(
-                        username=f'it_agent_{i+1}',
-                        email=f'it_agent_{i+1}@school.com',
-                        password_hash=generate_password_hash('password123'),
-                        role='it_agent',
-                        department='IT'
-                    )
-                    db.session.add(agent)
-                logger.info(f"Created {3 - len(it_agents)} IT agents")
-            
-            # Create sample FM agents
-            fm_agents = User.query.filter_by(role='fm_agent').all()
-            if len(fm_agents) < 4:
-                for i in range(4 - len(fm_agents)):
-                    agent = User(
-                        username=f'fm_agent_{i+1}',
-                        email=f'fm_agent_{i+1}@school.com',
-                        password_hash=generate_password_hash('password123'),
-                        role='fm_agent',
-                        department='FM'
-                    )
-                    db.session.add(agent)
-                logger.info(f"Created {4 - len(fm_agents)} FM agents")
-            
-            db.session.commit()
-            logger.info("Database initialization completed successfully")
-            
+        from app import app, db  # noqa: F401  (import performs the bootstrap)
+        logger.info("Database schema is up to date")
     except Exception as e:
         logger.error(f"Database initialization failed: {str(e)}")
         raise
