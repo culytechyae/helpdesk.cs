@@ -17,19 +17,24 @@
                 </div>
             {% endif %}
             <h4 class="text-white fw-bold mb-0">{{ system_settings.system_name }}</h4>
-            <p class="text-white-50 small">Sign in to your account</p>
+            <p class="text-white-50 small">{% if suspended %}This school account is suspended{% else %}Sign in to your account{% endif %}</p>
         </div>
 
+        {% if suspended %}
+        <div class="alert alert-warning text-center">
+            This school's helpdesk is currently unavailable. Please contact your administrator.
+        </div>
+        {% else %}
         <!-- Login Card -->
         <div class="card shadow-lg border-0" style="border-radius:20px;overflow:hidden;">
             <div class="card-body p-4 p-md-5">
                 <form method="POST" autocomplete="on">
                     <div class="mb-4">
-                        <label for="username" class="form-label fw-semibold text-muted small text-uppercase letter-spacing-1">Username</label>
+                        <label for="username" class="form-label fw-semibold text-muted small text-uppercase letter-spacing-1">Username or email</label>
                         <div class="input-group">
                             <span class="input-group-text border-0 bg-light"><i class="fas fa-user text-muted"></i></span>
                             <input type="text" class="form-control form-control-lg border-0 bg-light ps-2"
-                                   id="username" name="username" placeholder="Enter username"
+                                   id="username" name="username" placeholder="Username or email"
                                    autocomplete="username" required autofocus>
                         </div>
                     </div>
@@ -54,6 +59,7 @@
                 </form>
             </div>
         </div>
+        {% endif %}
 
         <p class="text-center text-white-50 small mt-4 mb-0">
             <i class="fas fa-shield-alt me-1"></i>Secure helpdesk portal

@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="description" content="Helpdesk - Ticket Management System">
-    <meta name="theme-color" content="#2c5f5f">
+    <meta name="theme-color" content="{{ theme.dark }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Helpdesk">
+    <meta name="apple-mobile-web-app-title" content="{{ system_settings.system_name }}">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="msapplication-TileColor" content="#2c5f5f">
+    <meta name="msapplication-TileColor" content="{{ theme.dark }}">
     <meta name="msapplication-config" content="/static/browserconfig.xml">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}{{ system_settings.system_name }}{% endblock %}</title>
     
     <!-- Favicons -->
@@ -866,6 +867,16 @@
             font-size: 0.9rem;
         }
     </style>
+    {% if theme.custom %}
+    <style>
+        :root {
+            --teal-dark: {{ theme.dark }};
+            --teal-medium: {{ theme.medium }};
+            --teal-light: {{ theme.light }};
+            --teal-lighter: {{ theme.lighter }};
+        }
+    </style>
+    {% endif %}
 </head>
 <body>
     <!-- Floating Background Shapes - Removed for performance -->
@@ -873,7 +884,7 @@
     <!-- Glassmorphism Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
+            <a class="navbar-brand" href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('index') }}">
                 {% if system_settings.logo_filename %}
                     <img src="{{ url_for('static', filename='uploads/' + system_settings.logo_filename) }}" alt="Logo" style="height:32px;width:auto;margin-right:8px;vertical-align:middle;object-fit:contain;">
                 {% else %}
@@ -891,6 +902,13 @@
                                 <i class="fas fa-tachometer-alt me-1"></i>Dashboard
                             </a>
                         </li>
+                        {% if current_user.role == 'super_admin' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('tenant.platform_dashboard') }}">
+                                    <i class="fas fa-school me-1"></i>Schools
+                                </a>
+                            </li>
+                        {% endif %}
                         {% if current_user.role in ['admin', 'super_admin'] %}
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
@@ -899,6 +917,16 @@
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="{{ url_for('admin_users') }}">
                                         <i class="fas fa-users me-1"></i>Manage Users
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('tenant.import_users_view') }}">
+                                        <i class="fas fa-file-import me-1"></i>Import Users
+                                    </a></li>
+                                    {% if current_user.role == 'admin' or current_school %}
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_agent_management') }}">
+                                        <i class="fas fa-headset me-1"></i>Agents
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('tenant.import_tickets_view') }}">
+                                        <i class="fas fa-file-import me-1"></i>Import Previous Tickets
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="{{ url_for('admin_tickets') }}">
@@ -923,10 +951,23 @@
                                     <li><a class="dropdown-item" href="{{ url_for('create_ticket') }}">
                                         <i class="fas fa-plus me-1"></i>Create Ticket
                                     </a></li>
+                                    {% endif %}
+                                    {% if current_user.role == 'super_admin' %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_settings') }}">
+                                        <i class="fas fa-cog me-1"></i>Platform Settings
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_email_settings') }}">
+                                        <i class="fas fa-envelope me-1"></i>Email Settings
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_system_management') }}">
+                                        <i class="fas fa-server me-1"></i>System
+                                    </a></li>
+                                    {% endif %}
                                 </ul>
                             </li>
                         {% endif %}
-                        {% if current_user.role in ['it_agent', 'fm_agent'] %}
+                        {% if current_user.role in ['it_agent', 'fm_agent', 'hse_agent'] %}
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="agentDropdown" role="button" data-bs-toggle="dropdown">
                                     <i class="fas fa-tools me-1"></i>Agent Tools
@@ -968,8 +1009,11 @@
                                 <i class="fas fa-user me-1"></i>{{ current_user.username }}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><span class="dropdown-item-text text-muted">{{ current_user.role|title }}</span></li>
+                                <li><span class="dropdown-item-text text-muted">{{ current_user.role.replace('_', ' ')|title }}{% if current_user.school %} · {{ current_user.school.system_name }}{% endif %}</span></li>
                                 <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('change_password') }}">
+                                    <i class="fas fa-key me-1"></i>Change Password
+                                </a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('logout') }}">
                                     <i class="fas fa-sign-out-alt me-1"></i>Logout
                                 </a></li>
@@ -991,6 +1035,17 @@
     <!-- Breadcrumb Section - Completely Removed -->
     {% block breadcrumb %}
     {% endblock %}
+
+    {% if current_user.is_authenticated and current_user.role == 'super_admin' and current_school %}
+    <div class="container mt-2">
+        <div class="alert alert-warning d-flex justify-content-between align-items-center py-2 mb-2">
+            <span><i class="fas fa-school me-2"></i>Managing <strong>{{ current_school.name }}</strong> as super admin</span>
+            <form method="POST" action="{{ url_for('tenant.school_leave') }}" class="m-0">
+                <button type="submit" class="btn btn-sm btn-dark"><i class="fas fa-door-open me-1"></i>Back to all schools</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Main Content - padding adjusted based on breadcrumb presence -->
     <main class="container main-content" style="padding-top: 0.5rem;">
@@ -1030,6 +1085,32 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // CSRF: every POST form gets the token; fetch/XHR get the X-CSRFToken header.
+    (function () {
+        var token = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+        window.addCsrf = function (form) {
+            if (!form || (form.method || '').toLowerCase() !== 'post' || form.querySelector('input[name="csrf_token"]')) return;
+            var input = document.createElement('input');
+            input.type = 'hidden'; input.name = 'csrf_token'; input.value = token;
+            form.appendChild(input);
+        };
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('form').forEach(window.addCsrf);
+        });
+        document.addEventListener('submit', function (e) { window.addCsrf(e.target); }, true);
+        var _fetch = window.fetch;
+        window.fetch = function (url, opts) {
+            opts = opts || {};
+            var method = (opts.method || 'GET').toUpperCase();
+            if (method !== 'GET' && method !== 'HEAD') {
+                opts.headers = new Headers(opts.headers || {});
+                if (!opts.headers.has('X-CSRFToken')) opts.headers.set('X-CSRFToken', token);
+            }
+            return _fetch.call(this, url, opts);
+        };
+    })();
+    </script>
 
     <!-- Offline indicator -->
     <div id="offlineBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;

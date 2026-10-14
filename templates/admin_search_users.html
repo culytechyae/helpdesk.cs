@@ -215,50 +215,25 @@
 {% endif %}
 
 <script>
-function resetPassword(userId, username) {
-    if (confirm(`Reset password for user "${username}"?`)) {
-        fetch(`/admin/reset_password/${userId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Password reset successfully!');
-            } else {
-                alert('Failed to reset password: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while resetting password');
-        });
-    }
+function postForm(url, fields) {
+    const f = document.createElement('form');
+    f.method = 'POST'; f.action = url;
+    Object.entries(fields || {}).forEach(([k, v]) => {
+        const i = document.createElement('input');
+        i.type = 'hidden'; i.name = k; i.value = v; f.appendChild(i);
+    });
+    document.body.appendChild(f);
+    window.addCsrf(f);
+    f.submit();
 }
-
+function resetPassword(userId, username) {
+    const pwd = prompt(`New password for "${username}" (min 8 characters):`);
+    if (pwd) postForm(`/admin/reset_password/${userId}`, {new_password: pwd});
+}
 function toggleUserStatus(userId, username, currentStatus) {
     const action = currentStatus ? 'deactivate' : 'activate';
     if (confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} user "${username}"?`)) {
-        fetch(`/admin/toggle_user_status/${userId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Failed to update user status: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while updating user status');
-        });
+        postForm(`/admin/toggle_user_status/${userId}`);
     }
 }
 </script>

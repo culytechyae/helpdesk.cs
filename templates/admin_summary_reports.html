@@ -245,7 +245,7 @@
                                 <td>
                                     {% for user in users %}
                                         {% if user.username == username %}
-                                            <a href="{{ url_for('user_ticket_summary', user_id=user.id) }}" class="btn btn-sm btn-primary">
+                                            <a href="{{ url_for('view_user', user_id=user.id) }}" class="btn btn-sm btn-primary">
                                                 <i class="fas fa-eye me-1"></i>View
                                             </a>
                                             <a href="{{ url_for('download_user_tickets', user_id=user.id) }}" class="btn btn-sm btn-success">

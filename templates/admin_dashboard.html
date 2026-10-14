@@ -119,8 +119,11 @@
                     <a href="{{ url_for('admin_search_tickets') }}" class="btn btn-info d-flex align-items-center gap-2">
                         <i class="fas fa-search" style="width:16px;"></i>Search Tickets
                     </a>
-                    <a href="{{ url_for('admin_settings') }}" class="btn btn-warning d-flex align-items-center gap-2">
-                        <i class="fas fa-cog" style="width:16px;"></i>Settings
+                    <a href="{{ url_for('admin_agent_management') }}" class="btn btn-warning d-flex align-items-center gap-2">
+                        <i class="fas fa-headset" style="width:16px;"></i>Agents
+                    </a>
+                    <a href="{{ url_for('tenant.import_tickets_view') }}" class="btn btn-info d-flex align-items-center gap-2">
+                        <i class="fas fa-file-import" style="width:16px;"></i>Import Previous Tickets
                     </a>
                     <a href="{{ url_for('admin_summary_reports') }}" class="btn btn-secondary d-flex align-items-center gap-2">
                         <i class="fas fa-chart-bar" style="width:16px;"></i>Reports
@@ -133,6 +136,7 @@
 
 <!-- More Actions Row -->
 <div class="row g-3 mb-4">
+    {% if current_user.role == 'super_admin' %}
     <div class="col-auto">
         <a href="{{ url_for('admin_email_templates') }}" class="btn btn-outline-light px-3">
             <i class="fas fa-envelope me-2"></i>Email Templates
@@ -143,6 +147,7 @@
             <i class="fas fa-database me-2"></i>Database
         </a>
     </div>
+    {% endif %}
     <div class="col-auto">
         <a href="{{ url_for('admin_search_users') }}" class="btn btn-outline-light px-3">
             <i class="fas fa-user-search me-2"></i>Search Users

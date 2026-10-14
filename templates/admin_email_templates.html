@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function loadTemplate(templateType) {
-        fetch(`/admin/email_templates/${templateType}`)
+        fetch(`/admin/get_email_template/${templateType}`)
             .then(response => response.json())
             .then(data => {
                 if (data.error) {

@@ -21366,3 +21366,4 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 2026-06-07 05:45:30,579 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
 2026-06-07 05:45:33,488 INFO: Request: GET http://127.0.0.1:5000/admin/summary_reports - User: admin - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
 2026-06-07 05:45:33,584 INFO: Request: GET http://127.0.0.1:5000/static/manifest.json - User: Anonymous - IP: 127.0.0.1 [in D:\helpdesk.cs\app.py:3222]
+2026-10-14 09:37:55,390 WARNING: First run: super admin "admin" created. Initial password: jYNTCql07sbk8JDr [in D:\helpdesk.cs\app.py:380]
