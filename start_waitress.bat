@@ -5,5 +5,5 @@ echo Installing/Updating dependencies...
 pip install -r requirements_windows.txt
 echo.
 echo Starting Waitress server...
-python -m waitress --host=0.0.0.0 --port=5000 wsgi:app
+python -m waitress --host=0.0.0.0 --port=5008 wsgi:app
 pause 

@@ -789,3 +789,13 @@ def test_object_pages_render(flask_app, world, make_client, superadmin):
 def test_error_pages(client, world, make_client):
     assert client.get('/definitely/not/here').status_code == 404
     assert make_client(world['a']['user']).get('/ticket/99999999').status_code == 404
+
+
+# --------------------------------------------------------------------------- analytics
+def test_analytics_super_admin_only_and_cross_school(world, superadmin, make_client):
+    assert make_client(world['a']['admin']).get('/platform/analytics').status_code == 302
+    html = superadmin.get('/platform/analytics?days=0').get_data(as_text=True)
+    assert 'Alpha Academy' in html and 'Beta School' in html and 'School comparison' in html
+    html = superadmin.get(f"/platform/analytics?days=0&school_id={world['a']['sid']}").get_data(as_text=True)
+    assert 'Alpha Academy' in html and 'Beta School<' not in html.split('School comparison')[1]
+    assert superadmin.get('/platform/analytics?days=abc').status_code == 200

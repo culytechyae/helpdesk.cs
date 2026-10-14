@@ -3,7 +3,7 @@ import os
 
 # Server configuration
 host = "0.0.0.0"
-port = 5000
+port = 5008
 threads = 4
 connection_limit = 1000
 cleanup_interval = 30

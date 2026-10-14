@@ -17,7 +17,7 @@ from importers import (
     ImportFileError, import_users, import_tickets, template_csv, template_xlsx,
 )
 from models import (
-    School, User, Ticket, ROLE_ADMIN, ROLE_SUPER_ADMIN, AGENT_ROLES, HEX_COLOR_RE, utc_now,
+    School, User, Ticket, ROLE_ADMIN, ROLE_SUPER_ADMIN, AGENT_ROLES, HEX_COLOR_RE, utc_now, PRIORITIES, CATEGORIES,
 )
 from tenancy import all_schools, super_admin_required, unique_slug
 from user_service import (
@@ -368,3 +368,105 @@ def import_template(kind, fmt):
                         headers={'Content-Disposition': f'attachment; filename={name}'})
     return send_file(template_xlsx(kind), as_attachment=True, download_name=name,
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+
+# --------------------------------------------------------------------------- analytics
+@bp.route('/platform/analytics')
+@super_admin_required
+def analytics():
+    """Cross-school ticket analytics for the super admin."""
+    from collections import Counter, defaultdict
+    from datetime import timedelta
+
+    days = request.args.get('days', 90, type=int)
+    if days not in (7, 30, 90, 365, 0):
+        days = 90
+    school_filter = request.args.get('school_id', type=int)
+    now = utc_now().replace(tzinfo=None)
+    since = now - timedelta(days=days) if days else None
+
+    schools_ = School.query.order_by(School.name).all()
+    names = {s.id: s.name for s in schools_}
+    with all_schools():
+        q = db.session.query(Ticket.school_id, Ticket.category, Ticket.priority, Ticket.status,
+                             Ticket.created_at, Ticket.updated_at, Ticket.assigned_to)
+        if since:
+            q = q.filter(Ticket.created_at >= since)
+        if school_filter:
+            q = q.filter(Ticket.school_id == school_filter)
+        rows = q.all()
+        agent_names = {uid: (full or uname) for uid, uname, full in
+                       db.session.query(User.id, User.username, User.full_name)
+                       .filter(User.role.in_(AGENT_ROLES))}
+
+    closed_states = ('Resolved', 'Closed')
+    by_status, by_category, by_priority = Counter(), Counter(), Counter()
+    per_school = defaultdict(lambda: {'total': 0, 'open': 0, 'resolved': 0, 'hours': 0.0, 'timed': 0,
+                                      'unassigned': 0, 'overdue': 0})
+    trend = Counter()
+    agents = defaultdict(lambda: {'assigned': 0, 'resolved': 0})
+    cat_by_school = defaultdict(Counter)
+    resolution_hours = []
+    for sid, cat, prio, status, created, updated, assignee in rows:
+        by_status[status] += 1
+        by_category[cat] += 1
+        by_priority[prio] += 1
+        ps = per_school[sid]
+        ps['total'] += 1
+        cat_by_school[sid][cat] += 1
+        is_closed = status in closed_states
+        if is_closed:
+            ps['resolved'] += 1
+            if created and updated and updated >= created:
+                h = (updated - created).total_seconds() / 3600
+                ps['hours'] += h
+                ps['timed'] += 1
+                resolution_hours.append(h)
+        else:
+            ps['open'] += 1
+            if assignee is None:
+                ps['unassigned'] += 1
+            if created and (now - created).days >= 7:
+                ps['overdue'] += 1
+        if created:
+            trend[created.strftime('%Y-%m-%d' if (days and days <= 90) else '%Y-%m')] += 1
+        if assignee:
+            agents[assignee]['assigned'] += 1
+            if is_closed:
+                agents[assignee]['resolved'] += 1
+
+    total = len(rows)
+    resolved = sum(v['resolved'] for v in per_school.values())
+    kpis = {
+        'total': total,
+        'open': total - resolved,
+        'resolved': resolved,
+        'resolution_rate': round(100 * resolved / total, 1) if total else 0,
+        'avg_hours': round(sum(resolution_hours) / len(resolution_hours), 1) if resolution_hours else 0,
+        'unassigned': sum(v['unassigned'] for v in per_school.values()),
+        'overdue': sum(v['overdue'] for v in per_school.values()),
+    }
+    school_rows = []
+    for sid, v in per_school.items():
+        school_rows.append({
+            'name': names.get(sid, f'#{sid}'), **v,
+            'rate': round(100 * v['resolved'] / v['total'], 1) if v['total'] else 0,
+            'avg_hours': round(v['hours'] / v['timed'], 1) if v['timed'] else 0})
+    school_rows.sort(key=lambda r: -r['total'])
+    top_agents = sorted(({'name': agent_names.get(a, f'#{a}'), **v} for a, v in agents.items()),
+                        key=lambda r: (-r['resolved'], -r['assigned']))[:10]
+    charts = {
+        'status': {'labels': list(by_status), 'data': list(by_status.values())},
+        'category': {'labels': list(by_category), 'data': list(by_category.values())},
+        'priority': {'labels': [p for p in PRIORITIES if p in by_priority],
+                     'data': [by_priority[p] for p in PRIORITIES if p in by_priority]},
+        'trend': {'labels': sorted(trend), 'data': [trend[k] for k in sorted(trend)]},
+        'schools': {'labels': [r['name'] for r in school_rows],
+                    'open': [r['open'] for r in school_rows], 'resolved': [r['resolved'] for r in school_rows]},
+        'cat_school': {'labels': [r['name'] for r in school_rows],
+                       'sets': {c: [cat_by_school[sid][c] for sid in
+                                    [next(s.id for s in schools_ if s.name == r['name']) for r in school_rows]]
+                                for c in CATEGORIES}},
+    }
+    return render_template('platform_analytics.html', kpis=kpis, school_rows=school_rows, top_agents=top_agents,
+                           charts=charts, schools=schools_, days=days, school_filter=school_filter)

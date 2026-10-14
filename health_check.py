@@ -14,7 +14,7 @@ from datetime import datetime
 def check_server_connectivity():
     """Check if the server is running and accessible"""
     try:
-        response = requests.get('http://localhost:5000/', timeout=5)
+        response = requests.get('http://localhost:5008/', timeout=5)
         if response.status_code == 200:
             print("✅ Server is running and accessible")
             return True
@@ -97,18 +97,18 @@ def check_file_permissions():
         return False
 
 def check_port_availability():
-    """Check if port 5000 is in use"""
+    """Check if port 5008 is in use"""
     try:
         import socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex(('localhost', 5000))
+        result = sock.connect_ex(('localhost', 5008))
         sock.close()
         
         if result == 0:
-            print("✅ Port 5000 is in use (server is running)")
+            print("✅ Port 5008 is in use (server is running)")
             return True
         else:
-            print("❌ Port 5000 is not in use (server may not be running)")
+            print("❌ Port 5008 is not in use (server may not be running)")
             return False
     except Exception as e:
         print(f"❌ Port check failed: {str(e)}")

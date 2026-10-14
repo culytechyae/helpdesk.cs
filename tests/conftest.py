@@ -6,7 +6,8 @@ import tempfile
 import pytest
 
 _TMP = tempfile.mkdtemp(prefix='helpdesk_test_')
-os.environ['DATABASE_URL'] = 'sqlite:///' + os.path.join(_TMP, 'test.db').replace('\\', '/')
+os.environ['DATABASE_URL'] = os.environ.get('TEST_DATABASE_URL') or (
+    'sqlite:///' + os.path.join(_TMP, 'test.db').replace('\\', '/'))
 os.environ['FLASK_ENV'] = 'development'
 os.environ['CSRF_ENABLED'] = '0'
 os.environ['INITIAL_ADMIN_PASSWORD'] = 'SuperAdmin#123'

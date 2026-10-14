@@ -18,7 +18,7 @@ class ProductionConfig:
     
     # Server Configuration
     HOST = os.environ.get('HOST', '0.0.0.0')
-    PORT = int(os.environ.get('PORT', 5000))
+    PORT = int(os.environ.get('PORT', 5008))
     THREADS = int(os.environ.get('THREADS', 4))
     CONNECTION_LIMIT = int(os.environ.get('CONNECTION_LIMIT', 1000))
     
@@ -105,7 +105,7 @@ class DevelopmentConfig:
     
     # Server Configuration
     HOST = '127.0.0.1'
-    PORT = 5000
+    PORT = 5008
     
     # Logging Configuration
     LOG_LEVEL = 'DEBUG'

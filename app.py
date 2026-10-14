@@ -353,10 +353,10 @@ def inject_system_settings():
         else:
             branding = _PlatformBranding(SystemSettings.query.first())
             theme = build_theme()
-        return {'system_settings': branding, 'current_school': school, 'theme': theme}
+        return {'system_settings': branding, 'current_school': school, 'theme': theme, 'now_year': datetime.now().year}
     except Exception:
         logger.exception('Failed to build branding context')
-        return {'system_settings': _PlatformBranding(), 'current_school': None, 'theme': build_theme()}
+        return {'system_settings': _PlatformBranding(), 'current_school': None, 'theme': build_theme(), 'now_year': datetime.now().year}
 
 
 def _bootstrap_platform():
@@ -3680,7 +3680,7 @@ def service_worker():
     return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5008, debug=False)
 
 
 @app.cli.command('create-superadmin')

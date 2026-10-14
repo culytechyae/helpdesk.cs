@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Analytics – {{ system_settings.system_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div>
+        <h2 class="mb-0"><i class="fas fa-chart-line me-2"></i>Platform Analytics</h2>
+        <p class="text-white-50 mb-0">Ticket data across {{ 'the selected school' if school_filter else 'all schools' }}.</p>
+    </div>
+    <form method="GET" class="d-flex gap-2">
+        <select class="form-select" name="school_id" onchange="this.form.submit()">
+            <option value="">All schools</option>
+            {% for s in schools %}<option value="{{ s.id }}" {% if school_filter == s.id %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+        </select>
+        <select class="form-select" name="days" onchange="this.form.submit()">
+            {% for v, l in [(7,'Last 7 days'),(30,'Last 30 days'),(90,'Last 90 days'),(365,'Last 12 months'),(0,'All time')] %}
+            <option value="{{ v }}" {% if days == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+        </select>
+    </form>
+</div>
+
+<div class="row g-3 mb-3">
+    {% for label, value, icon in [('Total tickets', kpis.total, 'ticket-alt'), ('Open', kpis.open, 'door-open'),
+        ('Resolved', kpis.resolved, 'check-circle'), ('Resolution rate', kpis.resolution_rate ~ '%', 'percentage'),
+        ('Avg resolution (h)', kpis.avg_hours, 'clock'), ('Unassigned open', kpis.unassigned, 'user-slash'),
+        ('Open > 7 days', kpis.overdue, 'exclamation-triangle')] %}
+    <div class="col-6 col-md-4 col-xl"><div class="card text-center h-100"><div class="card-body py-3">
+        <i class="fas fa-{{ icon }} text-muted mb-1"></i><h3 class="mb-0">{{ value }}</h3><small class="text-muted">{{ label }}</small>
+    </div></div></div>
+    {% endfor %}
+</div>
+
+{% if kpis.total == 0 %}
+<div class="card"><div class="card-body text-center text-muted py-5">No tickets in this period.</div></div>
+{% else %}
+<div class="row g-3 mb-3">
+    <div class="col-lg-8"><div class="card h-100"><div class="card-header"><strong>Tickets created over time</strong></div><div class="card-body"><canvas id="cTrend" height="110"></canvas></div></div></div>
+    <div class="col-lg-4"><div class="card h-100"><div class="card-header"><strong>By status</strong></div><div class="card-body"><canvas id="cStatus"></canvas></div></div></div>
+</div>
+<div class="row g-3 mb-3">
+    <div class="col-lg-6"><div class="card h-100"><div class="card-header"><strong>Open vs resolved by school</strong></div><div class="card-body"><canvas id="cSchools"></canvas></div></div></div>
+    <div class="col-lg-6"><div class="card h-100"><div class="card-header"><strong>Category mix by school</strong></div><div class="card-body"><canvas id="cCatSchool"></canvas></div></div></div>
+</div>
+<div class="row g-3 mb-3">
+    <div class="col-md-6 col-lg-4"><div class="card h-100"><div class="card-header"><strong>By category</strong></div><div class="card-body"><canvas id="cCategory"></canvas></div></div></div>
+    <div class="col-md-6 col-lg-4"><div class="card h-100"><div class="card-header"><strong>By priority</strong></div><div class="card-body"><canvas id="cPriority"></canvas></div></div></div>
+    <div class="col-lg-4"><div class="card h-100"><div class="card-header"><strong>Top agents (resolved)</strong></div>
+        <ul class="list-group list-group-flush">
+        {% for a in top_agents %}<li class="list-group-item d-flex justify-content-between"><span>{{ a.name }}</span><span><span class="badge bg-success">{{ a.resolved }}</span> <span class="badge bg-secondary">{{ a.assigned }} assigned</span></span></li>
+        {% else %}<li class="list-group-item text-muted">No assigned tickets.</li>{% endfor %}
+        </ul></div></div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header"><strong>School comparison</strong></div>
+    <div class="table-responsive"><table class="table table-sm table-hover mb-0">
+        <thead><tr><th>School</th><th class="text-end">Total</th><th class="text-end">Open</th><th class="text-end">Resolved</th><th class="text-end">Rate</th><th class="text-end">Avg res. (h)</th><th class="text-end">Unassigned</th><th class="text-end">Open &gt; 7d</th></tr></thead>
+        <tbody>{% for r in school_rows %}<tr><td>{{ r.name }}</td><td class="text-end">{{ r.total }}</td><td class="text-end">{{ r.open }}</td><td class="text-end">{{ r.resolved }}</td><td class="text-end">{{ r.rate }}%</td><td class="text-end">{{ r.avg_hours }}</td><td class="text-end">{{ r.unassigned }}</td><td class="text-end">{{ r.overdue }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    var C = {{ charts|tojson }};
+    var palette = ['#2c7a7b', '#d69e2e', '#c53030', '#2b6cb0', '#805ad5', '#38a169', '#dd6b20'];
+    function mk(id, cfg) { var el = document.getElementById(id); if (el) new Chart(el, cfg); }
+    mk('cTrend', {type: 'line', data: {labels: C.trend.labels, datasets: [{label: 'Tickets', data: C.trend.data, borderColor: palette[0], backgroundColor: 'rgba(44,122,123,.15)', fill: true, tension: .3}]}, options: {plugins: {legend: {display: false}}, scales: {y: {beginAtZero: true, ticks: {precision: 0}}}}});
+    mk('cStatus', {type: 'doughnut', data: {labels: C.status.labels, datasets: [{data: C.status.data, backgroundColor: palette}]}});
+    mk('cSchools', {type: 'bar', data: {labels: C.schools.labels, datasets: [{label: 'Open', data: C.schools.open, backgroundColor: palette[1]}, {label: 'Resolved', data: C.schools.resolved, backgroundColor: palette[5]}]}, options: {scales: {x: {stacked: true}, y: {stacked: true, beginAtZero: true, ticks: {precision: 0}}}}});
+    var cs = Object.keys(C.cat_school.sets).map(function (k, i) { return {label: k, data: C.cat_school.sets[k], backgroundColor: palette[i]}; });
+    mk('cCatSchool', {type: 'bar', data: {labels: C.cat_school.labels, datasets: cs}, options: {scales: {x: {stacked: true}, y: {stacked: true, beginAtZero: true, ticks: {precision: 0}}}}});
+    mk('cCategory', {type: 'pie', data: {labels: C.category.labels, datasets: [{data: C.category.data, backgroundColor: palette}]}});
+    mk('cPriority', {type: 'bar', data: {labels: C.priority.labels, datasets: [{data: C.priority.data, backgroundColor: ['#38a169', '#2b6cb0', '#dd6b20', '#c53030']}]}, options: {plugins: {legend: {display: false}}, scales: {y: {beginAtZero: true, ticks: {precision: 0}}}}});
+})();
+</script>
+{% endif %}
+{% endblock %}

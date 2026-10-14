@@ -28,7 +28,7 @@ if not exist "nssm.exe" (
 REM Get current directory
 set "APP_DIR=%CD%"
 set "PYTHON_PATH=python.exe"
-set "APP_ARGS=-m waitress --host=0.0.0.0 --port=5000 --threads=4 --connection-limit=1000 --ident=Helpdesk Application wsgi:app"
+set "APP_ARGS=-m waitress --host=0.0.0.0 --port=5008 --threads=4 --connection-limit=1000 --ident=Helpdesk Application wsgi:app"
 
 echo Installing service...
 nssm install Helpdesk "%PYTHON_PATH%" "%APP_ARGS%"

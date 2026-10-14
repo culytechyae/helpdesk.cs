@@ -54,11 +54,11 @@ echo The application is now ready for production.
 echo.
 echo To start the production server:
 echo 1. Run: start_waitress_production.bat
-echo 2. Or manually: python -m waitress --host=0.0.0.0 --port=5000 --threads=4 --connection-limit=1000 wsgi:app
+echo 2. Or manually: python -m waitress --host=0.0.0.0 --port=5008 --threads=4 --connection-limit=1000 wsgi:app
 echo.
 echo Access URLs:
-echo - Local: http://localhost:5000
-echo - Network: http://YOUR_IP:5000
+echo - Local: http://localhost:5008
+echo - Network: http://YOUR_IP:5008
 echo.
 echo Admin Login:
 echo - Username: admin
